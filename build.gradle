@@ -1,0 +1,12 @@
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
+
+def versioner = new com.sarhan.versioner.Versioner()
+
+group = 'com.coinfling'
+version = versioner.getSnapshotVersion()
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
