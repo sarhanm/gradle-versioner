@@ -1,6 +1,8 @@
 
 # Groovey Versioner
 
+[![Build Status](https://travis-ci.org/sarhanm/groovy-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/groovy-versioner)
+
 ### What is it?
 
 For gradle projects, this groovy project can generate a version based on git tags and other pieces of information from the git repo. 
