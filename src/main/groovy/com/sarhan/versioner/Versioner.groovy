@@ -86,11 +86,21 @@ class Versioner
 
     def String getBranchNameRaw()
     {
-        def output = executeGit(CMD_BRANCH)
-        if(output == null)
+        //Travis branch name
+        def name = System.env.TRAVIS_BRANCH
+
+        //Jenkins branch name
+        if(!name)
+            name = System.env.GIT_BRANCH
+
+        //Dev box. Execute the actual git cmd
+        if(!name)
+            name = executeGit(CMD_BRANCH)
+
+        if(!name)
             return "unknown"
 
-        return output.trim()
+        return name.trim()
     }
 
     def String getCommitHash()
