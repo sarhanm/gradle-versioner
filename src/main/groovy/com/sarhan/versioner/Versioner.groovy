@@ -16,7 +16,8 @@ class Versioner
     static final CMD_COMMIT_HASH =  "rev-parse --short HEAD"
 
     private cache = [:]
-    private gitExecutor
+    private GitExecutor gitExecutor
+    private EnvReader envReader
     private solidBranchRegex;
     private commonHotfixBranch
 
@@ -30,6 +31,7 @@ class Versioner
         this.solidBranchRegex = solidBranchRegex
         this.commonHotfixBranch = commonHotfixBranch
         this.gitExecutor = new GitExecutor()
+        this.envReader = new EnvReader()
     }
 
     def getHotfixNumber()
@@ -86,12 +88,8 @@ class Versioner
 
     def String getBranchNameRaw()
     {
-        //Travis branch name
-        def name = System.env.TRAVIS_BRANCH
-
-        //Jenkins branch name
-        if(!name)
-            name = System.env.GIT_BRANCH
+        //Either from jenkins or travis
+        def name = envReader.getBranchNameFromEnv()
 
         //Dev box. Execute the actual git cmd
         if(!name)
