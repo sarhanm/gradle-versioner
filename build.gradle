@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 def versioner = new com.sarhan.versioner.Versioner()
 
-group = 'com.coinfling'
+group = 'com.sarhan'
 version = versioner.getSnapshotVersion()
 
 dependencies {
