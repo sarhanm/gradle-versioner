@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 def versioner = new com.sarhan.versioner.Versioner()
 
-group = 'com.sarhan'
+group = 'com.sarhanm'
 version = versioner.getVersion()
 
 println "Building version: $project.version"
