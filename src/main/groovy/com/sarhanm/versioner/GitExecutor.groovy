@@ -1,4 +1,4 @@
-package com.sarhan.versioner
+package com.sarhanm.versioner
 
 /**
  * Seperate class so we can mock and test

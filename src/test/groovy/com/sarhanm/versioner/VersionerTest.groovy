@@ -1,4 +1,4 @@
-package com.sarhan.versioner
+package com.sarhanm.versioner
 
 import groovy.mock.interceptor.MockFor
 import org.junit.Test

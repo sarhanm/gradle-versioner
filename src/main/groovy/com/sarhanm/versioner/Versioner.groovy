@@ -1,4 +1,4 @@
-package com.sarhan.versioner
+package com.sarhanm.versioner
 
 /**
  * Generates a solid and snapshot version using information

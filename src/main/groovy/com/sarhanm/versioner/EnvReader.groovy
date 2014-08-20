@@ -1,4 +1,4 @@
-package com.sarhan.versioner
+package com.sarhanm.versioner
 
 /**
  * Mostly to be mockable

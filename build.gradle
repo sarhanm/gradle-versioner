@@ -1,12 +1,8 @@
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
-
-def versioner = new com.sarhan.versioner.Versioner()
+apply plugin: 'com.sarhanm.versioner'
 
 group = 'com.sarhanm'
-version = versioner.getVersion()
-
-println "Building version: $project.version"
 
 dependencies {
     compile gradleApi()
