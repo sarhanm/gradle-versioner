@@ -1,6 +1,7 @@
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'com.sarhanm.versioner'
+apply plugin: 'maven'
 
 group = 'com.sarhanm'
 

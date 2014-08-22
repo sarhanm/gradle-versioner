@@ -6,8 +6,8 @@ package com.sarhanm.versioner
  */
 class Versioner
 {
-    private static final DEFAULT_SOLID_BRANCH_REGEX = "master|.*release.*|.*hotfix.*"
-    private static final DEFAULT_HOTFIX_COMMON_BRANCH = "origin/master"
+    static final DEFAULT_SOLID_BRANCH_REGEX = "master|.*release.*|.*hotfix.*"
+    static final DEFAULT_HOTFIX_COMMON_BRANCH = "origin/master"
 
     //Git commands also used in unit tests
     static final CMD_BRANCH = "rev-parse --abbrev-ref HEAD"
