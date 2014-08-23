@@ -1,7 +1,7 @@
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
-apply plugin: 'com.jfrog.bintray'
+
 
 //We apply ourselves to generate a version
 apply plugin: 'com.sarhanm.versioner'
@@ -12,3 +12,5 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
 }
+
+
