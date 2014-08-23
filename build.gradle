@@ -1,7 +1,10 @@
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
-apply plugin: 'com.sarhanm.versioner'
 apply plugin: 'maven'
+apply plugin: 'com.jfrog.bintray'
+
+//We apply ourselves to generate a version
+apply plugin: 'com.sarhanm.versioner'
 
 group = 'com.sarhanm'
 

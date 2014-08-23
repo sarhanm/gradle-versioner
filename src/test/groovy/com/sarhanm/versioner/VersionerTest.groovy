@@ -3,9 +3,7 @@ package com.sarhanm.versioner
 import groovy.mock.interceptor.MockFor
 import org.junit.Test
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertTrue
-import static org.junit.Assert.assertFalse
+import static org.junit.Assert.*
 
 /**
  *
@@ -94,7 +92,7 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertTrue versioner.useSolidVersion()
+            assertTrue versioner.useSolidMajorMinorVersion()
         }
 
         gitMock.demand.execute {params -> "feature/foobar"}
@@ -102,7 +100,7 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertFalse versioner.useSolidVersion()
+            assertFalse versioner.useSolidMajorMinorVersion()
         }
 
         gitMock.demand.execute {params -> "hotfix/foobar"}
@@ -110,7 +108,7 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertTrue versioner.useSolidVersion()
+            assertTrue versioner.useSolidMajorMinorVersion()
         }
 
         gitMock.demand.execute {params -> "release/foobar"}
@@ -118,7 +116,7 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertTrue versioner.useSolidVersion()
+            assertTrue versioner.useSolidMajorMinorVersion()
         }
     }
 
@@ -195,4 +193,84 @@ class VersionerTest {
             assertEquals "3.9.1005.master.adbcdff", versioner.getVersion()
         }
     }
+
+    @Test
+    void testSnapshotVersion()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(1..5) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
+            else if (params == Versioner.CMD_POINT) "4"
+            else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            versioner.options.snapshot = true
+            assertEquals "2.3.master-SNAPSHOT", versioner.getVersion()
+        }
+    }
+
+    @Test
+    void testSnapshotSolidVersion()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(1..5) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
+            else if (params == Versioner.CMD_POINT) "4"
+            else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            versioner.options.snapshot = true
+            versioner.options.omitBranchMetadata = true
+            assertEquals "2.3-SNAPSHOT", versioner.getVersion()
+        }
+    }
+
+    @Test
+    void testSolidDigitOnlyVersion()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(1..5) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
+            else if (params == Versioner.CMD_POINT) "4"
+            else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            versioner.options.omitBranchMetadata = true
+            assertEquals "2.3.4", versioner.getVersion()
+        }
+    }
+
+
+
+
 }

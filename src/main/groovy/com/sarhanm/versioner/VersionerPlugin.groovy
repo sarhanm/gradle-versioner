@@ -15,24 +15,21 @@ class VersionerPlugin implements Plugin<Project>{
     @Override
     void apply(Project project) {
 
-        logger.info "com.sarhanm.versioner: Initial project version: $project.version"
+        logger.debug "com.sarhanm.versioner: Initial project $project.name version: $project.version"
 
-        project.extensions.create("versioner", VersionerPluginExtension)
+        project.extensions.create("versioner", VersionerOptions)
 
-        project.afterEvaluate {
+        //We can't get user options until the project is evaluated.
+        project.afterEvaluate { theProject ->
 
-            def VersionerPluginExtension params = project.extensions.getByName("versioner")
+            def VersionerOptions params = theProject.extensions.getByName("versioner")
 
-            def versioner = new Versioner(params.solidBranchRegex,params.solidBranchRegex)
-
-            if(params.snapshot)
-                project.version = versioner.getSnapshotVersion()
-            else
-                project.version = versioner.getVersion()
-
-            logger.quiet "com.sarhanm.versioner: Set project version to : $project.version"
+            if(!params.disabled) {
+                def versioner = new Versioner(params)
+                theProject.version = versioner.getVersion()
+                logger.quiet "com.sarhanm.versioner: Set project '$theProject.name' version to : $theProject.version"
+            }
         }
-
     }
 }
 
