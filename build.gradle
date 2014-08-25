@@ -1,10 +1,13 @@
+// Apply versioner first so we set the version number correctly
+// in case another plugin doesn't wait until the project is evaluated before execution.
+
+apply plugin: 'com.sarhanm.versioner'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 
-//We apply ourselves to generate a version
-apply plugin: 'com.sarhanm.versioner'
 
 group = 'com.sarhanm'
 
@@ -13,4 +16,45 @@ dependencies {
     compile localGroovy()
 }
 
+apply plugin: 'com.jfrog.bintray'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+    }
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
 
+bintray {
+    user = 'sarhanm'
+    key = '1c13455b7bf8e32b22c933872bd0ce57f8a57ea4'
+    publications = ['mavenJava']
+    dryRun = false //Whether to run this as dry-run, without deploying
+    publish = false //If version should be auto published after an upload
+    pkg {
+        repo = 'maven'
+        name = 'versioner'
+        desc = 'A gradle plugin to set the project version based on git metadata'
+//        websiteUrl = 'https://github.com/bintray/gradle-bintray-plugin'
+//        issueTrackerUrl = 'https://github.com/bintray/gradle-bintray-plugin/issues'
+//        vcsUrl = 'https://github.com/bintray/gradle-bintray-plugin.git'
+        licenses = ['MIT']
+//        labels = ['gear', 'gore', 'gorilla']
+//        publicDownloadNumbers = true
+//        attributes= ['a': ['ay1', 'ay2'], 'b': ['bee'], c: 'cee'] //Optional package-level attributes
+        //Optional version descriptor
+        version {
+            name = project.version
+            attributes = ['gradle-plugin': 'versioner:com.sarhanm:versioner']
+        }
+    }
+
+}

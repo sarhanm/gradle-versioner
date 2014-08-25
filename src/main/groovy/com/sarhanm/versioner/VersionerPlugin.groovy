@@ -2,6 +2,7 @@ package com.sarhanm.versioner
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.logging.Logging
 
 /**
@@ -15,21 +16,28 @@ class VersionerPlugin implements Plugin<Project>{
     @Override
     void apply(Project project) {
 
-        logger.debug "com.sarhanm.versioner: Initial project $project.name version: $project.version"
+        logger.debug "Initial project $project.name version: $project.version"
 
-        project.extensions.create("versioner", VersionerOptions)
+        def params = null
+        try
+        {
+            //We no longer create the extension ourselves because
+            //its expected to exist before this plugin is applied(only way to get the options during initialization)
+            // Refer to the README about how to use this plugin correctly.
 
-        //We can't get user options until the project is evaluated.
-        project.afterEvaluate { theProject ->
-
-            def VersionerOptions params = theProject.extensions.getByName("versioner")
-
-            if(!params.disabled) {
-                def versioner = new Versioner(params)
-                theProject.version = versioner.getVersion()
-                logger.quiet "com.sarhanm.versioner: Set project '$theProject.name' version to : $theProject.version"
-            }
+            //project.extensions.create("versioner", VersionerOptions)
+            params = project.extensions.getByType(VersionerOptions)
         }
+        catch(UnknownDomainObjectException ex)
+        {
+            params = new VersionerOptions()
+        }
+
+        def versioner = new Versioner(params)
+        project.version = versioner.getVersion()
+        logger.quiet "Set project '$project.name' version to : $project.version"
+
+
     }
 }
 
