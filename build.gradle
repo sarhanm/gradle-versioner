@@ -1,7 +1,7 @@
 // Apply versioner first so we set the version number correctly
 // in case another plugin doesn't wait until the project is evaluated before execution.
-
 apply plugin: 'com.sarhanm.versioner'
+
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'maven'

@@ -89,7 +89,7 @@ class Versioner
     def String getBranchNameRaw()
     {
         //Either from jenkins or travis
-        def name = envReader.getBranchNameFromEnv()
+        def name = envReader.getBranchNameFromEnv(options.branchEnvName)
 
         //Dev box. Execute the actual git cmd
         if(!name)

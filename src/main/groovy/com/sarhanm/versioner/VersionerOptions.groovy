@@ -19,6 +19,7 @@ class VersionerOptions {
     def boolean disabled = false
     def boolean snapshot = false
     def boolean omitBranchMetadata = false
+    def String branchEnvName = null
     def String solidBranchRegex = Versioner.DEFAULT_SOLID_BRANCH_REGEX
     def String commonHotfixBranch = Versioner.DEFAULT_HOTFIX_COMMON_BRANCH
 

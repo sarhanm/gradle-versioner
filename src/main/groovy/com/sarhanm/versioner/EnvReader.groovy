@@ -7,8 +7,13 @@ package com.sarhanm.versioner
 class EnvReader
 {
 
-    def getBranchNameFromEnv()
+    def getBranchNameFromEnv(branchNameEnv=null)
     {
+        if(branchNameEnv)
+        {
+            return System.env[branchNameEnv]
+        }
+
         //Travis branch name
         def name = System.env.TRAVIS_BRANCH
 
