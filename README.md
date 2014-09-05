@@ -1,7 +1,7 @@
 
 # Groovey Versioner
 
-[![Build Status](https://travis-ci.org/sarhanm/groovy-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/groovy-versioner)
+[![Build Status](https://travis-ci.org/sarhanm/gradle-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/gradle-versioner)
 
 ### What is it?
 
