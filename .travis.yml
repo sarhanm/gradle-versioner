@@ -2,4 +2,3 @@ language: groovy
 script: "./travis-run.sh"
 jdk:
 - oraclejdk7
-- openjdk7

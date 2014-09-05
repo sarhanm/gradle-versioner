@@ -6,5 +6,3 @@ if [ "$TRAVIS_REPO_SLUG" == "sarhanm/gradle-versioner" ] && [ "$TRAVIS_PULL_REQU
 else
     gradle check
 fi
-
-return $?
