@@ -5,6 +5,7 @@ apply plugin: 'com.sarhanm.versioner'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 group = 'com.sarhanm'
 
@@ -28,19 +29,34 @@ buildscript {
 }
 apply plugin: 'com.jfrog.bintray'
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
+}
+task groovydocJar( type: Jar ) {
+    classifier 'javadoc'
+    from groovydoc
 }
 
 artifacts {
     archives sourcesJar
+    archives groovydocJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact groovydocJar
+        }
+    }
 }
 
 bintray {
     user = 'sarhanm'
     key = System.env.BINTRAYTOKEN
-    publications = ['archives']
+    publications = ['mavenJava']
     dryRun = false
     publish = true
     pkg {
