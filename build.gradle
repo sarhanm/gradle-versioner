@@ -35,7 +35,7 @@ publishing {
 
 bintray {
     user = 'sarhanm'
-    key = '1c13455b7bf8e32b22c933872bd0ce57f8a57ea4'
+    key = $System.env.BINTRAYTOKEN
     publications = ['mavenJava']
     dryRun = false //Whether to run this as dry-run, without deploying
     publish = false //If version should be auto published after an upload
@@ -51,7 +51,7 @@ bintray {
         publicDownloadNumbers = true
         version {
             name = project.version
-            attributes = ['gradle-plugin': ['versioner:com.sarhanm:gradle-versioner','version-resolver:com.sarhanm:gradle-versioner'] ]
+            attributes = ['gradle-plugin': ['com.sarhanm.versioner:com.sarhanm:gradle-versioner','com.sarhanm.version-resolver:com.sarhanm:gradle-versioner'] ]
         }
     }
 }
