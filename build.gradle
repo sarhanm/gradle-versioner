@@ -9,6 +9,10 @@ apply plugin: 'maven-publish'
 
 group = 'com.sarhanm'
 
+repositories {
+    jcenter()
+}
+
 dependencies {
     compile gradleApi()
     compile localGroovy()
@@ -35,10 +39,10 @@ publishing {
 
 bintray {
     user = 'sarhanm'
-    key = $System.env.BINTRAYTOKEN
+    key = System.env.BINTRAYTOKEN
     publications = ['mavenJava']
-    dryRun = false //Whether to run this as dry-run, without deploying
-    publish = false //If version should be auto published after an upload
+    dryRun = false
+    publish = false
     pkg {
         repo = 'maven'
         name = 'gradle-versioner'
