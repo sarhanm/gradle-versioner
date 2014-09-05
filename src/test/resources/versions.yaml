@@ -1,0 +1,5 @@
+#A manifest that lists all the possible
+version: 1.0
+modules:
+  'com.coinfling:auth-service-api': 1.0-SNAPSHOT
+  'com.coinfling:auth-service-impl': 1.0-SNAPSHOT

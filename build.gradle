@@ -7,16 +7,14 @@ apply plugin: 'eclipse'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
-
-
 group = 'com.sarhanm'
 
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    compile 'org.yaml:snakeyaml:1.14'
 }
 
-apply plugin: 'com.jfrog.bintray'
 buildscript {
     repositories {
         jcenter()
@@ -25,6 +23,8 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
     }
 }
+apply plugin: 'com.jfrog.bintray'
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -41,20 +41,17 @@ bintray {
     publish = false //If version should be auto published after an upload
     pkg {
         repo = 'maven'
-        name = 'versioner'
+        name = 'gradle-versioner'
         desc = 'A gradle plugin to set the project version based on git metadata'
-//        websiteUrl = 'https://github.com/bintray/gradle-bintray-plugin'
-//        issueTrackerUrl = 'https://github.com/bintray/gradle-bintray-plugin/issues'
-//        vcsUrl = 'https://github.com/bintray/gradle-bintray-plugin.git'
+        websiteUrl = 'https://github.com/sarhanm/gradle-versioner'
+        issueTrackerUrl = 'https://github.com/sarhanm/gradle-versioner/issues'
+        vcsUrl = 'https://github.com/sarhanm/gradle-versioner.git'
         licenses = ['MIT']
-//        labels = ['gear', 'gore', 'gorilla']
-//        publicDownloadNumbers = true
-//        attributes= ['a': ['ay1', 'ay2'], 'b': ['bee'], c: 'cee'] //Optional package-level attributes
-        //Optional version descriptor
+        labels = ['gradle', 'git', 'versioning', 'auto version']
+        publicDownloadNumbers = true
         version {
             name = project.version
-            attributes = ['gradle-plugin': 'versioner:com.sarhanm:versioner']
+            attributes = ['gradle-plugin': ['versioner:com.sarhanm:gradle-versioner','version-resolver:com.sarhanm:gradle-versioner'] ]
         }
     }
-
 }

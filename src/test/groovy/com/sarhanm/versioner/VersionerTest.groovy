@@ -143,7 +143,6 @@ class VersionerTest {
             versioner.envReader = envMock.proxyInstance()
             assertEquals "hotfix-foobar" , versioner.getBranchName()
             assertEquals "2.3.4.3.hotfix-foobar.adbcdf", versioner.getVersion()
-
         }
     }
 
