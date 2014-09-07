@@ -4,7 +4,7 @@
 
 Some companies keep a manifest of all the dependencies in use and the version numbers of those dependencies. This feature is very similar to maven's dependencyManagement.
 
-Simply define a yaml file that contains all the values. The yaml file MUST contain
+Simply define a yaml file that contains all the dependencies and their verisons. The yaml file MUST contain
 
 1. A version of the yaml (this is used for backward compatibility)
 2. A 'modules' map that define your dependencies
