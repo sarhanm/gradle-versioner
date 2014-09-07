@@ -1,93 +1,45 @@
-
-# Groovey Versioner
+# Gradle Versioner Plugin
 
 [![Build Status](https://travis-ci.org/sarhanm/gradle-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/gradle-versioner)
 
-### What is it?
+## The Versioner?
 
-For gradle projects, this groovy plugin can generate a version based on git tags and other pieces of information from the git repo. Because the version is derived from the state of your git repo, you don't have to worry about maintaining the version value in your gradle.build file as you merge and/or branch. It'll always output the correct value.
+For gradle projects, this plugin can generate a version based on git tags and other pieces of information from the git repo. Because the version is derived from the state of your git repo, you don't have to worry about maintaining the version value in your gradle.build file as you merge and/or branch; it'll always output the correct value.
 
-Simple Example:
+For example, if i had a gradle build that generated a jar, in the master branch the version of the jar would be
+
+    my-project-2.1.6.master.d9741b1.jar
     
-    gradle.build
-    apply plugin: 'com.sarhanm.versioner'
-    
-Example using versioner options:
+and in the feature/fixing-something branch, it would be
 
-    gradle.build
-    
-    // Note: order is important. Options must be specified before plugin is applied
-    project.extensions.create('versioner',com.sarhanm.versioner.VersionerOptions)
-    versioner{
-        snapshot = true
-    }    
-    apply plugin: 'com.sarhanm.versioner'
+    my-project-0.0.6.feature-fixing-something.c3751f4.jar
 
-Look at com.sarhanm.versioner.VersionerOptions for a complete list of options.
+The version of the project was derived from the state of the git repo. 
 
-### Scheme
+We also have the commit-hash at the end, so if we ever wanted to branch off a particular commit, or checkout that commit, the information is stored in the version string.
 
-The version scheme:
+[You can read more about the gradle-versioner, how its can be used and configured](doc/versioner.md)
 
-#### For branch names master, release/.* and hotfix/.*
+## The Version Resolver
 
-    {major}.{minor}.{#-of-commits}.{hotfix-number}.{branch-name}.{short-commit-hash}
- 
-#### All other branches
+The version resolver has two functionalities.
 
-    0.0.{#-of-commits}.{hotfix-number}.{branch-name}.{short-commit-hash}
+### Resolving version ranges
 
-NOTE: in this case, we namespace out the version string and prepend with 0.0
+The version-resolver allows us to specify version ranges and dynamic gradle versions.
 
-#### Snapshot versions for master, release/.* and hotfix/.*
-    
-    {major}.{minor}.{branch-name}-SNAPSHOT
+So you would be able to do something like
 
-#### Snapshot versions for all other branches
+    compile 'com.sarhanm:my-project:1.2.master+
+    compile 'com.sarhanm:my-other-proj:[1.2.3.feature-fixing-something,)
+    compile 'com.sarhanm:another-proj:(1.2.3.master,1.3.0.master) 
 
-    0.0.{branch-name}-SNAPSHOT    
+Read the [full documentation on version-resolver](doc/resolver.md)
 
-### {major}.{minor}:
+### Version Manifest Resolution
 
-The major and minor parts of the version are derived from the newest git tag that starts with a 'v'. 
- 
-Example tags:
-    v1.0
-    v2.3
+When using the version-resolver plugin, you can specify a yaml file that contains all the versions of all the dependencies your company will use.
 
-This value will be used only for branch names "master", "hotfix/.*" and "release/.*"
+This is similar to maven's "dependencyManagement". 
 
-All other branches get a major.minor of '0.0'. This helps keep the version scheme uploaded to nexus clean (or any other artifact repository ).
- 
-This can be configured via com.sarhanm.versioner.VersionerOptions:solidBranchRegex, so you could configure the plugin to always use the git tag for all branches. 
- 
-### {#-of-commits}:
- 
-The is the number of commits since the inception of the git repo.
-  
-### {hotfix-number}:
-
-This is the number of commits in the current branch that do not yet exist in the master branch. This assumes that hotfix branches are forked from master. 
-
-This is configurable via com.sarhanm.versioner.VersionerOptions:commonHotfixBranch
-
-This number ONLY exists if the branch name contains the word "hotfix"
-
-### {branch-name}:
-
-This is the branch name of the repo. 
-
-Branch name is cleansed to remove 'origin/' and 'remote/' and converts '/' and '.' to '-'
-
-On build boxes, the branch name is derived from environment variables.
-Jenkins --> $GIT_BRANCH
-Travis --> $TRAVIS_BRANCH
-
-For other build systems, you'll need to configure the env key that contains the branchName. Use the com.sarhanm.versioner.VersionerOptions:branchEnvName
-
-NOTE: The reason we use environment variables to determine the branch name is that most build systems checkout a repo at a commit, which is a detached head. In this case, we have no way to determine what the branch name is without the help of the build system.
-
-### {short-commit-hash}
-
-This is the short commit hash. Super useful to look at an artifact and know how to get to it to start a hotfix or developmet.
-
+Read the [full documentation on the version manifest](doc/manifest.md)
