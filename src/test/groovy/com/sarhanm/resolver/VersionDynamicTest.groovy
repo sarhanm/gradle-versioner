@@ -20,11 +20,14 @@ class VersionDynamicTest {
         assertTrue VersionRange.isValidRange("1.n.n.master+")
         assertTrue VersionRange.isValidRange("1.3.n.master+")
         assertTrue VersionRange.isValidRange("1.4.2.master+")
+        assertTrue VersionRange.isValidRange("1.4.2.4.hotfix-now+")
 
         assertFalse VersionRange.isValidRange("1.n.n.master")
         assertFalse VersionRange.isValidRange("1.n.master+")
         assertFalse VersionRange.isValidRange("1.n.n-master+")
         assertFalse VersionRange.isValidRange("1.2.3")
+        assertFalse VersionRange.isValidRange("1.4.master+")
+        assertFalse VersionRange.isValidRange("1.n.master+")
     }
 
 
