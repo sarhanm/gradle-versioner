@@ -22,7 +22,7 @@ Example using versioner options:
     }    
     apply plugin: 'com.sarhanm.versioner'
 
-Look at [com.sarhanm.versioner.VersionerOptions](src/main/groovy/com/sarhanm/resolver/VersionResolverOptions.groovy) for a complete list of options.
+Look at [com.sarhanm.versioner.VersionerOptions](../src/main/groovy/com/sarhanm/versioner/VersionerOptions.groovy) for a complete list of options.
 
 ### Scheme
 
@@ -58,7 +58,7 @@ This value will be used only for branch names "master", "hotfix/.*" and "release
 
 All other branches get a major.minor of '0.0'. This helps keep the version scheme uploaded to nexus clean (or any other artifact repository ).
  
-This can be configured via [com.sarhanm.versioner.VersionerOptions:solidBranchRegex](src/main/groovy/com/sarhanm/resolver/VersionResolverOptions.groovy), so you could configure the plugin to always use the git tag for all branches. 
+This can be configured via [com.sarhanm.versioner.VersionerOptions:solidBranchRegex](../src/main/groovy/com/sarhanm/versioner/VersionerOptions.groovy), so you could configure the plugin to always use the git tag for all branches. 
  
 ### {#-of-commits}:
  
@@ -68,7 +68,7 @@ The is the number of commits since the inception of the git repo.
 
 This is the number of commits in the current branch that do not yet exist in the master branch. This assumes that hotfix branches are forked from master. 
 
-This is configurable via [com.sarhanm.versioner.VersionerOptions:commonHotfixBranch](src/main/groovy/com/sarhanm/resolver/VersionResolverOptions.groovy)
+This is configurable via [com.sarhanm.versioner.VersionerOptions:commonHotfixBranch](../src/main/groovy/com/sarhanm/versioner/VersionerOptions.groovy)
 
 This number ONLY exists if the branch name contains the word "hotfix"
 
@@ -82,7 +82,7 @@ On build boxes, the branch name is derived from environment variables.
 Jenkins --> $GIT_BRANCH
 Travis --> $TRAVIS_BRANCH
 
-For other build systems, you'll need to configure the env key that contains the branchName. Use the [com.sarhanm.versioner.VersionerOptions:branchEnvName](src/main/groovy/com/sarhanm/resolver/VersionResolverOptions.groovy)
+For other build systems, you'll need to configure the env key that contains the branchName. Use the [com.sarhanm.versioner.VersionerOptions:branchEnvName](../src/main/groovy/com/sarhanm/versioner/VersionerOptions.groovy)
 
 NOTE: The reason we use environment variables to determine the branch name is that most build systems checkout a repo at a commit, which is a detached head. In this case, we have no way to determine what the branch name is without the help of the build system.
 
