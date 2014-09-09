@@ -51,9 +51,9 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     @Override
     void execute(DependencyResolveDetails details) {
 
+
         def requested = details.requested
         def requestedVersion = resolveVersionFromManifest(details)
-
         def range = new VersionRange(requestedVersion)
 
         if(range.valid) {
@@ -95,29 +95,29 @@ class VersionResolver implements Action<DependencyResolveDetails>{
 
         if(ver == 'auto' && options && options.manifest)
         {
-            def manifest = getManifest(options.manifest)
+            def manifest = getManifest()
             def name = "${requested.group}:${requested.name}"
             ver =   manifest.modules[name] ?: ver
+            logger.debug("Resolved version of $name to $ver")
         }
 
         ver
     }
 
     @Memoized
-    private getManifest(def VersionManifestOption options)
+    private getManifest()
     {
-        def location = options.url
+        def location = options.manifest.url
         def text = null
-
         if( location.startsWith("http")) {
             def builder = new HTTPBuilder(location)
 
-            if(options.username != null)
+            if(options.manifest.username != null)
             {
-                builder.auth.basic options.username, options.password
+                builder.auth.basic options.manifest.username, options.manifest.password
             }
 
-            if(options.ignoreSSL)
+            if(options.manifest.ignoreSSL)
                 builder.ignoreSSLIssues()
 
             builder.request(Method.GET) { rep ->
@@ -125,6 +125,8 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                 response.success = { resp, reader ->
                     assert resp.statusLine.statusCode == 200
                     text = reader.text
+                    logger.debug("Got Manifest Versions --")
+                    logger.debug(text)
                 }
             }
         }

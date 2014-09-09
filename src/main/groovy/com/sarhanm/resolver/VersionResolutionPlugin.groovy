@@ -16,9 +16,11 @@ class VersionResolutionPlugin implements Plugin<Project>{
     @Override
     void apply(Project project) {
         project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
+        project."$VERSION_RESOLVER".extensions.create("versionManifest", VersionManifestOption)
 
         project.afterEvaluate {
-            def params = project.extensions.getByName(VERSION_RESOLVER)
+            def params = project."$VERSION_RESOLVER"
+            params.manifest = params.versionManifest
             def resolver = new VersionResolver(project, params)
             project.configurations.all { resolutionStrategy.eachDependency(resolver) }
         }
