@@ -1,6 +1,16 @@
 // Apply versioner first so we set the version number correctly
 // in case another plugin doesn't wait until the project is evaluated before execution.
-apply plugin: 'com.sarhanm.versioner'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+    }
+}
+plugins{
+    id 'com.sarhanm.versioner' version '1.0.32.master.308f597'
+}
 
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
@@ -17,16 +27,9 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     compile 'org.yaml:snakeyaml:1.14'
+    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
 }
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
-    }
-}
 apply plugin: 'com.jfrog.bintray'
 
 task sourcesJar(type: Jar) {

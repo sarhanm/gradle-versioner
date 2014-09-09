@@ -15,8 +15,7 @@ class VersionResolveViaManifestTest {
     void testManifestVersion() {
         def file = new File("src/test/resources/versions.yaml")
 
-        def options = new VersionResolverOptions()
-        options.versionManifest = file.toURI().toString()
+        def options = getOption(file.toURI().toString())
 
         def selectorMock = new MockFor(ModuleVersionSelector)
         selectorMock.demand.getVersion(1) { params -> 'auto' }
@@ -38,8 +37,7 @@ class VersionResolveViaManifestTest {
     {
         def file = new File("src/test/resources/versions.yaml")
 
-        def options = new VersionResolverOptions()
-        options.versionManifest = file.toURI().toString()
+        def options = getOption(file.toURI().toString())
 
         def selectorMock = new MockFor(ModuleVersionSelector)
         selectorMock.demand.getVersion{ params-> 'auto'}
@@ -59,8 +57,7 @@ class VersionResolveViaManifestTest {
     {
         def file = new File("src/test/resources/versions.yaml")
 
-        def options = new VersionResolverOptions()
-        options.versionManifest = file.toURI().toString()
+        def options = getOption(file.toURI().toString())
 
         def selectorMock = new MockFor(ModuleVersionSelector)
         selectorMock.demand.getVersion{ params-> '1.2.3'}
@@ -71,5 +68,35 @@ class VersionResolveViaManifestTest {
         def resolver = new VersionResolver(null, options)
         def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         assert ver == "1.2.3"
+    }
+
+    @Test
+    void testRemoteLocation() {
+
+        def options = getOption("https://repo.coinfling.com/service/local/artifact/maven/redirect?r=public&g=com.coinfling&a=version-manifest&v=1.0.master-20140908.205119-1&e=yaml",
+                                "nexusread", "fulus777")
+
+        options.manifest.ignoreSSL = true
+
+        def selectorMock = new MockFor(ModuleVersionSelector)
+        selectorMock.demand.getVersion(1) { params -> 'auto' }
+        selectorMock.demand.getGroup { params -> 'org.hibernate' }
+        selectorMock.demand.getName { params -> 'hibernate-core' }
+
+        def detailsMock = new MockFor(DependencyResolveDetails)
+        detailsMock.demand.getRequested(1) { params -> selectorMock.proxyInstance() }
+
+        def details = detailsMock.proxyInstance()
+        def resolver = new VersionResolver(null, options)
+        def ver = resolver.resolveVersionFromManifest(details)
+        assert ver == "4.3.5.Final"
+
+    }
+
+    private VersionResolverOptions getOption(def url, def username = null, def password = null)
+    {
+        def options = new VersionResolverOptions()
+        options.manifest = [ url: url, username: username, password: password] as VersionManifestOption
+        options
     }
 }

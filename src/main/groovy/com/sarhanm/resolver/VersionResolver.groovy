@@ -2,6 +2,8 @@ package com.sarhanm.resolver
 
 import groovy.transform.Memoized
 import groovy.transform.Synchronized
+import groovyx.net.http.HTTPBuilder
+import groovyx.net.http.Method
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyResolveDetails
@@ -91,9 +93,9 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def requested = details.requested
         def ver = requested.version
 
-        if(ver == 'auto' && options && options.versionManifest)
+        if(ver == 'auto' && options && options.manifest)
         {
-            def manifest = getManifest(options.versionManifest)
+            def manifest = getManifest(options.manifest)
             def name = "${requested.group}:${requested.name}"
             ver =   manifest.modules[name] ?: ver
         }
@@ -102,16 +104,38 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     }
 
     @Memoized
-    private getManifest(def location)
+    private getManifest(def VersionManifestOption options)
     {
-        //TODO: be able to handle multiple URL Schemas.
-        //For now, this handles file:// and http:// and https://
-        //Need it to also handle mvn://groupId:artifactId[:classifier][:type]
-        // and other type of formats that make it easier to specify where the yaml file lives.
+        def location = options.url
+        def text = null
 
-        def url = location.toURL()
+        if( location.startsWith("http")) {
+            def builder = new HTTPBuilder(location)
+
+            if(options.username != null)
+            {
+                builder.auth.basic options.username, options.password
+            }
+
+            if(options.ignoreSSL)
+                builder.ignoreSSLIssues()
+
+            builder.request(Method.GET) { rep ->
+                // executed for all successful responses:
+                response.success = { resp, reader ->
+                    assert resp.statusLine.statusCode == 200
+                    text = reader.text
+                }
+            }
+        }
+        else
+        {
+            def url = location.toURL()
+            text = url.text
+        }
+
         Yaml yaml = new Yaml()
-        def manifest =  yaml.load(url.text)
+        def manifest =  yaml.load(text)
         manifest
     }
 }
