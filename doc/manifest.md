@@ -21,14 +21,16 @@ Once you have the file somewhere, you can then use 'auto' as the version of your
 
     # build.gradle
     apply plugin: 'com.sarhanm.version-resolver'
-    
+        
     versionResolver{
-        versionManifest = 'http://my-url.com/versions.yaml'
+        versionManifest{
+            url 'https://my-url.com/versions.yaml'
+        }
     }
-    
     dependencies{
         compile 'com.coinfling:auth-service-api:auto'
         compile 'com.coinfling:cc-service:auto'                
     }
-    
-As always, you can override the version by using something other than 'auto'
+
+Look at [VersionManifestOption](../src/main/groovy/com/sarhanm/resolver/VersionResolverOptions.groovy) for all available configurable options. 
+

@@ -93,7 +93,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def requested = details.requested
         def ver = requested.version
 
-        if(ver == 'auto' && options && options.manifest)
+        if(ver == 'auto' && options && options.manifest && options.manifest.url)
         {
             def manifest = getManifest()
             def name = "${requested.group}:${requested.name}"
