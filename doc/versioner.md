@@ -16,7 +16,8 @@ Example using versioner options:
     #gradle.build
     
     // Note: order is important. Options must be specified before plugin is applied
-    project.extensions.create('versioner',com.sarhanm.versioner.VersionerOptions)
+    import com.sarhanm.versioner.VersionerOptions
+    project.extensions.create('versioner', VersionerOptions)
     versioner{
         snapshot = true
     }    
