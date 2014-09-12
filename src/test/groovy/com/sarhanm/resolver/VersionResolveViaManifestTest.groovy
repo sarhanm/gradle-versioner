@@ -73,7 +73,7 @@ class VersionResolveViaManifestTest {
     @Test
     void testRemoteLocation() {
 
-        def options = getOption("https://repo.coinfling.com/service/local/artifact/maven/redirect?r=public&g=com.coinfling&a=version-manifest&v=1.0.master-20140908.205119-1&e=yaml",
+        def options = getOption("https://repo.coinfling.com/service/local/artifact/maven/redirect?r=public&g=com.coinfling&a=version-manifest&v=2.0.master-SNAPSHOT&e=yaml&c=yaml",
                                 "nexusread", "fulus777")
 
         options.manifest.ignoreSSL = true
