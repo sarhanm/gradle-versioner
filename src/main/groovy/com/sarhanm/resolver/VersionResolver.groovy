@@ -96,6 +96,8 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         if(ver == 'auto' && options && options.manifest && options.manifest.url)
         {
             def manifest = getManifest()
+            if(manifest == null)
+                throw new RuntimeException("Could not resolve manifest location $options.manifest.url")
             def name = "${requested.group}:${requested.name}"
             ver =   manifest.modules[name] ?: ver
             logger.debug("Resolved version of $name to $ver")
@@ -108,8 +110,10 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     private getManifest()
     {
         def location = options.manifest.url
+
         def text = null
         if( location.startsWith("http")) {
+
             def builder = new HTTPBuilder(location)
 
             if(options.manifest.username != null)
@@ -128,6 +132,10 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                     logger.debug("Got Manifest Versions --")
                     logger.debug(text)
                 }
+
+                response.failure = { resp ->
+                    logger.error "Unexpected error: ${resp.statusLine.statusCode} : ${resp.statusLine.reasonPhrase}"
+                }
             }
         }
         else
@@ -135,6 +143,9 @@ class VersionResolver implements Action<DependencyResolveDetails>{
             def url = location.toURL()
             text = url.text
         }
+
+        if(text == null)
+            return null
 
         Yaml yaml = new Yaml()
         def manifest =  yaml.load(text)
