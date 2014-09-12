@@ -70,7 +70,7 @@ class VersionResolveViaManifestTest {
         assert ver == "1.2.3"
     }
 
-    @Test
+    //@Test
     void testRemoteLocation() {
 
         def options = getOption("https://repo.coinfling.com/service/local/artifact/maven/redirect?r=public&g=com.coinfling&a=version-manifest&v=2.0.master-SNAPSHOT&e=yaml&c=yaml",
