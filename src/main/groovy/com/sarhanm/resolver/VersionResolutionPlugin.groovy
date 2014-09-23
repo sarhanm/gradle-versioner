@@ -10,7 +10,6 @@ import org.gradle.api.Project
  */
 class VersionResolutionPlugin implements Plugin<Project>{
 
-
     public static final String VERSION_RESOLVER = "versionResolver"
 
     @Override
@@ -18,12 +17,25 @@ class VersionResolutionPlugin implements Plugin<Project>{
         project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
         project."$VERSION_RESOLVER".extensions.create("versionManifest", VersionManifestOption)
 
+        if (project.configurations.findByName('versionManifest') == null) {
+            project.configurations.create('versionManifest')
+        }
+
         project.afterEvaluate {
             def params = project."$VERSION_RESOLVER"
             params.manifest = params.versionManifest
-            def resolver = new VersionResolver(project, params)
+
+            def versionManifest = project.configurations.findByName('versionManifest')
+            def resolved = versionManifest.resolve()
+
+            def file = null
+
+            if( resolved && !resolved.empty){
+                file = resolved.first()
+            }
+
+            def resolver = new VersionResolver(project,params, file)
             project.configurations.all { resolutionStrategy.eachDependency(resolver) }
         }
-
     }
 }

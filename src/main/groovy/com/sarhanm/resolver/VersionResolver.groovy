@@ -30,10 +30,12 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     private Project project
     private VersionResolverOptions options
     private List<ResolutionAwareRepository> repositories = null
+    private File manifestFile
 
-    VersionResolver(Project project, VersionResolverOptions options = null) {
+    VersionResolver(Project project,VersionResolverOptions options = null, File manifestFile = null) {
         this.project = project
         this.repositories = null;
+        this.manifestFile = manifestFile
         this.options = options
     }
 
@@ -93,7 +95,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def requested = details.requested
         def ver = requested.version
 
-        if(ver == 'auto' && options && options.manifest && options.manifest.url)
+        if(ver == 'auto' && (manifestFile || options && options.manifest && options.manifest.url) )
         {
             def manifest = getManifest()
             if(manifest == null)
@@ -109,10 +111,11 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     @Memoized
     private getManifest()
     {
-        def location = options.manifest.url
 
+        def location = manifestFile?.toURI()?.toString() ?: options.manifest.url
         def text = null
-        if( location.startsWith("http")) {
+
+        if(  location.startsWith("http")) {
 
             def builder = new HTTPBuilder(location)
 
@@ -129,8 +132,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                 response.success = { resp, reader ->
                     assert resp.statusLine.statusCode == 200
                     text = reader.text
-                    logger.debug("Got Manifest Versions --")
-                    logger.debug(text)
+                    logger.debug("Version Manifest: $location")
                 }
 
                 response.failure = { resp ->
@@ -141,11 +143,14 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         else
         {
             def url = location.toURL()
+            logger.info("Version Manifest: $url")
             text = url.text
         }
 
         if(text == null)
             return null
+
+        logger.debug(text)
 
         Yaml yaml = new Yaml()
         def manifest =  yaml.load(text)
