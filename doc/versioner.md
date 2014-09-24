@@ -1,7 +1,5 @@
 # Gradle Versioner
 
-[![Build Status](https://travis-ci.org/sarhanm/gradle-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/gradle-versioner)
-
 ### What is it?
 
 For gradle projects, this gradle plugin can generate a version based on git tags and other pieces of information from the git repo. Because the version is derived from the state of your git repo, you don't have to worry about maintaining the version value in your gradle.build file as you merge and/or branch; it'll always output the correct value.
@@ -15,7 +13,8 @@ Example using versioner options:
 
     #gradle.build
     
-    // Note: order is important. Options must be specified before plugin is applied
+    // Note: order is important. 
+    //Options must be specified before plugin is applied
     import com.sarhanm.versioner.VersionerOptions
     project.extensions.create('versioner', VersionerOptions)
     versioner{

@@ -34,3 +34,34 @@ Once you have the file somewhere, you can then use 'auto' as the version of your
 
 Look at [VersionManifestOption](../src/main/groovy/com/sarhanm/resolver/VersionResolverOptions.groovy) for all available configurable options. 
 
+
+### Configuring the URL Location of the Manifest File
+
+There are two ways to configure where the manifest file lives
+
+#### Method 1
+You can specify a url and an optional username and password
+
+    # build.gradle
+    apply plugin: 'com.sarhanm.version-resolver'
+        
+    versionResolver{
+        versionManifest{
+            url 'https://my-url.com/versions.yaml'
+            username 'myusername'
+            password 'mypassword'
+            ignoressl true
+        }
+    }
+
+#### Method 2
+
+If the yaml file exists in a repository, you can add it to the dependencies section
+
+    # build.gradle
+    apply plugin: 'com.sarhanm.version-resolver'
+
+    dependencies{
+        versionManifest "group:artifactId:version:classifier@ext"
+    }
+

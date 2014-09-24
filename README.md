@@ -8,11 +8,13 @@ For gradle projects, this plugin can generate a version based on git tags and ot
 
 For example, if i had a gradle build that generated a jar, in the master branch the version of the jar would be
 
-    my-project-2.1.6.master.d9741b1.jar
+    Version: 2.1.6.master.d9741b1
+    Produced Artifact: my-project-2.1.6.master.d9741b1.jar
     
 and in the feature/fixing-something branch, it would be
 
-    my-project-0.0.6.feature-fixing-something.c3751f4.jar
+    Version: 0.0.6.feature-fixing-something.c3751f4
+    Produced artifact: my-project-0.0.6.feature-fixing-something.c3751f4.jar
 
 The version of the project was derived from the state of the git repo. 
 

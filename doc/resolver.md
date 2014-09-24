@@ -1,6 +1,6 @@
 # Gradle Version Resolver
 
-The version resolver plugin allows us to set dynamic versions or version ranges on dependencies that are versioned with the gradle-versioner
+The version resolver plugin allows us to set dynamic versions or version ranges on dependencies that are versioned with the [versioner](versioner.md) plugin
 
 Example:
 
