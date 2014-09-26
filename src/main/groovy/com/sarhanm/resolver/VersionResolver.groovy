@@ -59,7 +59,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def range = new VersionRange(requestedVersion)
 
         if(range.valid) {
-
+            logger.debug "$requested is a valid range ($requestedVersion). Trying to resolve"
             getRepos().each { repo ->
 
                 def result = new DefaultBuildableModuleVersionSelectionResolveResult()
@@ -78,11 +78,14 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                     if (versionsList) {
                         def versionToUse = versionsList.last().version
                         logger.info "$requested.group:$requested.name using version $versionToUse"
-                        details.useVersion versionToUse
+                        requestedVersion = versionToUse
                         return
                     }
                 }
             }
+        }
+        else{
+            logger.debug("$requested is not a valid range ($requestedVersion). Not trying to resolve")
         }
 
         if( requestedVersion != requested.version)
