@@ -6,7 +6,12 @@ package com.sarhanm.versioner
  */
 class GitExecutor
 {
-    /**
+    def File rootDir
+    GitExecutor(def File rootDir) {
+        this.rootDir = rootDir
+    }
+
+/**
      * Executes the git command
      * @param cmdArgs
      * @return
@@ -14,7 +19,7 @@ class GitExecutor
     def execute(cmdArgs)
     {
         def cmd = "git " + cmdArgs
-        def proc = cmd.execute()
+        def proc = cmd.execute(null, rootDir)
 
         proc.waitFor()
 

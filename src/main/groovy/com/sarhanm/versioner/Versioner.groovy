@@ -27,9 +27,9 @@ class Versioner
         this.options = new VersionerOptions()
     }
 
-    public Versioner(versionerOptions)
+    public Versioner(versionerOptions, File rootDir)
     {
-        this.gitExecutor = new GitExecutor()
+        this.gitExecutor = new GitExecutor(rootDir)
         this.envReader = new EnvReader()
         this.options = versionerOptions
     }
