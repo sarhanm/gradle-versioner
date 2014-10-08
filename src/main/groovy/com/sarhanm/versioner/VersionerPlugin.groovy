@@ -35,7 +35,7 @@ class VersionerPlugin implements Plugin<Project>{
 
         if(!params.disabled)
         {
-            def versioner = new Versioner(params, project.buildFile.parentFile)
+            def versioner = new Versioner(params, project.projectDir)
             project.version = versioner.getVersion()
             logger.quiet "Set project '$project.name' version to : $project.version"
         }
