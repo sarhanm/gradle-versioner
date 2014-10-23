@@ -124,16 +124,28 @@ class Versioner
         //We now have the digit parts of the version.
         //The rest is adding git meta-data depending on user-options
 
-        if(!options.omitBranchMetadata)
+        if(!omitBranchMetadata())
             version += ".$branchName"
 
         if(options.snapshot)
             version += "-SNAPSHOT"
-        else if(!options.omitBranchMetadata)
+        else if(!omitBranchMetadata())
             version += ".$commitHash"
 
         return version
     }
+
+    def omitBranchMetadata()
+    {
+        if(options.omitBranchMetadata)
+            return true
+
+        if(options.omitBranchMetadataOnSolidBranch && useSolidMajorMinorVersion())
+            return true
+
+        return false
+    }
+
 
     /******************/
     /**** Private *****/

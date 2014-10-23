@@ -33,6 +33,11 @@ class VersionerOptions {
     def boolean omitBranchMetadata = false
 
     /**
+     * Set to true if you want to omit the branch meta-data and only output digits for solidBranches
+     */
+    def boolean omitBranchMetadataOnSolidBranch = false
+
+    /**
      * Set to the environment Key that contains the branch name.
      * This is ONLY required for build systems other than jenkins and travis
      */

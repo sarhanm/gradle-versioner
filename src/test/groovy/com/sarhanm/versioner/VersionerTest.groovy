@@ -165,6 +165,7 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
+            versioner.options.omitBranchMetadataOnSolidBranch = true
             assertEquals "0.0.9.feature-foobar.adbcdf", versioner.getVersion()
         }
     }
@@ -265,6 +266,31 @@ class VersionerTest {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
             versioner.options.omitBranchMetadata = true
+            assertEquals "2.3.4", versioner.getVersion()
+        }
+    }
+
+    @Test
+    void testSolidDigitOnlyOnSolidBranchVersion()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(1..5) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
+            else if (params == Versioner.CMD_POINT) "4"
+            else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            versioner.options.omitBranchMetadataOnSolidBranch = true
             assertEquals "2.3.4", versioner.getVersion()
         }
     }
