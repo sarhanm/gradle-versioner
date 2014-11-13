@@ -95,10 +95,12 @@ class VersionResolver implements Action<DependencyResolveDetails>{
 
     def String resolveVersionFromManifest(DependencyResolveDetails details)
     {
-        def isExplicit = isExplicitlyVersioned(details.requested.group, details.requested.name)
-
         def requested = details.requested
         def ver = requested.version
+        def group = requested.group
+        def rname = requested.name
+        def isExplicit = isExplicitlyVersioned(group,rname)
+
 
         //We don't want to set versions for dependencies explicitly set in this project.
         if(ver != 'auto' && isExplicit)
@@ -109,7 +111,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
             def manifest = getManifest()
             if(manifest == null)
                 throw new RuntimeException("Could not resolve manifest location $options.manifest.url")
-            def name = "${requested.group}:${requested.name}"
+            def name = "${group}:${rname}"
             ver =   manifest.modules[name] ?: ver
             logger.info("Resolved version of $name to $ver")
         }

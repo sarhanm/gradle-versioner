@@ -80,6 +80,8 @@ class VersionResolveViaManifestTest {
 
         def selectorMock = new MockFor(ModuleVersionSelector)
         selectorMock.demand.getVersion{ params-> '1.2.3'}
+        selectorMock.demand.getGroup{ params -> 'com.coinfling'}
+        selectorMock.demand.getName{ params -> 'foobar'}
 
         def detailsMock = new MockFor(DependencyResolveDetails)
         detailsMock.demand.getRequested{params-> selectorMock.proxyInstance()}
@@ -87,6 +89,7 @@ class VersionResolveViaManifestTest {
         def resolver = new VersionResolver(null, options)
         def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         assert ver == "1.2.3"
+
     }
 
     //@Test
