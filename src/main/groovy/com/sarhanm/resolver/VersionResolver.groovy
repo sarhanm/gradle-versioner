@@ -113,7 +113,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                 throw new RuntimeException("Could not resolve manifest location $options.manifest.url")
             def name = "${group}:${rname}"
             ver =   manifest.modules[name] ?: ver
-            logger.info("Resolved version of $name to $ver")
+            logger.debug("Resolved version of $name to $ver")
         }
 
         ver
