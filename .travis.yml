@@ -1,4 +1,10 @@
 language: groovy
+before_script: true
 script: "./travis-run.sh"
 jdk:
 - oraclejdk7
+
+# whitelist
+branches:
+  only:
+    - master
