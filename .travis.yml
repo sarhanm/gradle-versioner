@@ -8,3 +8,5 @@ jdk:
 branches:
   only:
     - master
+git:
+  depth: 100

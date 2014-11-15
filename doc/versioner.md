@@ -90,3 +90,10 @@ NOTE: The reason we use environment variables to determine the branch name is th
 
 This is the short commit hash. Super useful to look at an artifact and know how to get to it to start a hotfix or developmet.
 
+## NOTE:
+Travis CI has a default git depth of 50. This means that your {#-of-commits} will stay at 50 unless you change the depth of your clone to something higher.
+
+```
+git:
+  depth: 100
+```
