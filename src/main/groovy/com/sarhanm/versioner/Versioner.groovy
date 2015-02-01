@@ -44,18 +44,26 @@ class Versioner
 
     def getVersionPoint()
     {
-        //Number of commits since start of time.
-        String output = executeGit(CMD_POINT)
-
-        //Default to zero if we are not able to get the point version
-        if(output == null)
-            return 0
-
-        def point = output.trim()
         if(isHotfix())
-            point += "." + getHotfixNumber()
+        {
+            // In the hofix case, the point value is not the number of commits in the current branch
+            //but the number of commits from when we split off.
+            def branchName = getBranchNameRaw();
 
-        return point
+            def commit_hash = executeGit("merge-base $branchName $options.commonHotfixBranch")
+            def commitList = executeGit("log --oneline $commit_hash")
+
+            def point = commitList ? commitList.split('\n').length : 0
+            point += "." + getHotfixNumber()
+            return point
+        }
+        else{
+            //Number of commits since start of time.
+            String output = executeGit(CMD_POINT)
+
+            //Default to zero if we are not able to get the point version
+            return output == null ? "0" : output.trim()
+        }
     }
 
     def getMajorMinor()

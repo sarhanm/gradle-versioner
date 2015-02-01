@@ -129,12 +129,14 @@ class VersionerTest {
 
         def gitMock = new MockFor(GitExecutor.class)
 
-        gitMock.demand.execute(5) { params ->
+        gitMock.demand.execute(6) { params ->
             if (params == Versioner.CMD_BRANCH) "hotfix/foobar"
-            else if (params.startsWith("log --oneline hotfix/foobar")) "one\ntwo\nthree"
+            else if (params.startsWith("log --oneline hotfix/foobar")) "one\ntwo\nthree\nfour"
             else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
             else if (params == Versioner.CMD_POINT) "4"
             else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
+            else if (params.startsWith("merge-base")) "commit-hash-return"
+            else if (params == "log --oneline commit-hash-return") "one\ntwo\nthree"
             else throw new Exception("Unaccounted for method call")
         }
 
@@ -142,7 +144,7 @@ class VersionerTest {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
             assertEquals "hotfix-foobar" , versioner.getBranchName()
-            assertEquals "2.3.4.3.hotfix-foobar.adbcdf", versioner.getVersion()
+            assertEquals "2.3.3.4.hotfix-foobar.adbcdf", versioner.getVersion()
         }
     }
 
