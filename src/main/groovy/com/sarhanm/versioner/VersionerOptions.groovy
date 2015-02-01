@@ -38,6 +38,12 @@ class VersionerOptions {
     def boolean omitBranchMetadataOnSolidBranch = false
 
     /**
+     * This option is available because ios apps uploaded to the apple store require exactly 3 digit version numbers.
+     * So having a 4th hotfix value will prevent successful submissions.
+     */
+    def boolean disableHotfixVersioning = false
+
+    /**
      * Set to the environment Key that contains the branch name.
      * This is ONLY required for build systems other than jenkins and travis
      */

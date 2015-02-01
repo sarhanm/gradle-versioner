@@ -187,6 +187,9 @@ class Versioner
 
     private isHotfix()
     {
+        if(options.disableHotfixVersioning)
+            return false
+
         def branchName = getBranchName()
         return branchName.contains("hotfix")
     }

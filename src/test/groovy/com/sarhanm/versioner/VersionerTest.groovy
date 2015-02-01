@@ -149,6 +149,31 @@ class VersionerTest {
     }
 
     @Test
+    void testHotfixBranchWithHotfixDisabledVersion()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(4) { params ->
+            if (params == Versioner.CMD_BRANCH) "hotfix/foobar"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v3.9"
+            else if (params == Versioner.CMD_POINT) "5"
+            else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdff"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            versioner.options.disableHotfixVersioning = true
+            assertEquals "3.9.5.hotfix-foobar.adbcdff", versioner.getVersion()
+        }
+    }
+
+    @Test
     void testFeatureVersion()
     {
         def envMock = new MockFor(EnvReader.class)
