@@ -8,13 +8,13 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionSelectionResolveResult
-import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Transformers
+import org.gradle.internal.component.model.DefaultDependencyMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentVersionSelectionResolveResult
 import org.gradle.util.CollectionUtils
 import org.yaml.snakeyaml.Yaml
 
@@ -62,7 +62,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
             logger.debug "$requested is a valid range ($requestedVersion). Trying to resolve"
             getRepos().each { repo ->
 
-                def result = new DefaultBuildableModuleVersionSelectionResolveResult()
+                def result = new DefaultBuildableModuleComponentVersionSelectionResolveResult()
 
                 DependencyMetaData data = new DefaultDependencyMetaData(new DefaultModuleVersionIdentifier(
                         requested.getGroup(),
@@ -71,7 +71,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
 
                 repo.createResolver().remoteAccess.listModuleVersions(data, result)
 
-                if (result.state == BuildableModuleVersionSelectionResolveResult.State.Listed) {
+                if (result.state == BuildableModuleComponentVersionSelectionResolveResult.State.Listed) {
                     def versionsList = result.versions.versions.findAll({ range.contains(it.version) })
                             .collect({ new Version(it.version) }).sort()
 
