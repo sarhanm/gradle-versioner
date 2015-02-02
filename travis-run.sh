@@ -2,7 +2,7 @@
 
 # Only publish the master branch
 if [ "$TRAVIS_REPO_SLUG" == "sarhanm/gradle-versioner" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
-    gradle check bintrayUpload
+    ./gradlew check bintrayUpload
 else
-    gradle check
+    ./gradlew check
 fi
