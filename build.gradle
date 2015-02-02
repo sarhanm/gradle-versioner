@@ -32,6 +32,10 @@ dependencies {
 
 apply plugin: 'com.jfrog.bintray'
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
+}
+    
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
