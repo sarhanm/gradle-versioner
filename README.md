@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/sarhanm/gradle-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/gradle-versioner)
 
+*Version 1.0.61.master.d310825 and above only work with gradle version 2.2.1*
+
 ## The Versioner
 
 For gradle projects, this plugin can generate a version based on git tags and other pieces of information from the git repo. Because the version is derived from the state of your git repo, you don't have to worry about maintaining the version value in your gradle.build file as you merge and/or branch; it'll always output the correct value.
