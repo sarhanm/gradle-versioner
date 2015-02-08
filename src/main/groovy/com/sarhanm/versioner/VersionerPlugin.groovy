@@ -25,7 +25,6 @@ class VersionerPlugin implements Plugin<Project>{
             //its expected to exist before this plugin is applied(only way to get the options during initialization)
             // Refer to the README about how to use this plugin correctly.
 
-            //project.extensions.create("versioner", VersionerOptions)
             params = project.extensions.getByType(VersionerOptions)
         }
         catch(UnknownDomainObjectException ex)
@@ -37,6 +36,14 @@ class VersionerPlugin implements Plugin<Project>{
         {
             def versioner = new Versioner(params, project.projectDir)
             project.version = versioner.getVersion()
+
+            //Adding git data so it can be used in the build script
+            GitData data = project.extensions.create("gitdata",GitData)
+            data.branch = versioner.branchNameProperty
+            data.commit = versioner.commitHash
+
+            //TODO: Add other pieces of git metadata that might be needed
+
             logger.quiet "Set project '$project.name' version to : $project.version"
         }
     }

@@ -82,6 +82,15 @@ class Versioner
 
     def String getBranchName()
     {
+        return branchNameProperty.replaceAll('/', '-').replaceAll('\\.','-')
+    }
+
+    /**
+     *
+     * @return Branch name without the remote and/or origin prefix
+     */
+    def String getBranchNameProperty()
+    {
         def branchName = getBranchNameRaw()
 
         def prefixes = ['remote/','origin/']
@@ -91,7 +100,7 @@ class Versioner
                 branchName = branchName.substring(prefix.length())
         }
 
-        return branchName.replaceAll('/', '-').replaceAll('\\.','-')
+        branchName
     }
 
     def String getBranchNameRaw()
