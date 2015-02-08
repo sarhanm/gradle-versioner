@@ -46,7 +46,7 @@ class Versioner
     {
         if(isHotfix())
         {
-            // In the hofix case, the point value is not the number of commits in the current branch
+            // In the hotfix case, the point value is not the number of commits in the current branch
             //but the number of commits from when we split off.
             def branchName = getBranchNameRaw();
 
@@ -80,16 +80,16 @@ class Versioner
         return output.substring(1).trim()
     }
 
-    def String getBranchName()
+    def String getCleansedBranchName()
     {
-        return branchNameProperty.replaceAll('/', '-').replaceAll('\\.','-')
+        return branch.replaceAll('/', '-').replaceAll('\\.','-')
     }
 
     /**
      *
      * @return Branch name without the remote and/or origin prefix
      */
-    def String getBranchNameProperty()
+    def String getBranch()
     {
         def branchName = getBranchNameRaw()
 
@@ -142,7 +142,7 @@ class Versioner
         //The rest is adding git meta-data depending on user-options
 
         if(!omitBranchMetadata())
-            version += ".$branchName"
+            version += ".$cleansedBranchName"
 
         if(options.snapshot)
             version += "-SNAPSHOT"
@@ -175,7 +175,7 @@ class Versioner
      */
     private useSolidMajorMinorVersion()
     {
-        def branchName = getBranchName()
+        def branchName = getCleansedBranchName()
         return branchName.matches(options.solidBranchRegex)
     }
 
@@ -199,7 +199,7 @@ class Versioner
         if(options.disableHotfixVersioning)
             return false
 
-        def branchName = getBranchName()
+        def branchName = getCleansedBranchName()
         return branchName.contains("hotfix")
     }
 }

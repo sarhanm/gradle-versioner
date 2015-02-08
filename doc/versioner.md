@@ -22,6 +22,25 @@ Example using versioner options:
     }    
     apply plugin: 'com.sarhanm.versioner'
 
+Because of [GRADLE-2407](https://issues.gradle.org/browse/GRADLE-2407) you cannot apply this plugin in any initializing scripts (scripts found in init.d).
+This is a common case for most companies and to get around the limitation the plugin will look for a closure in the project's properties that it will call before the version is set. You will still need to apply the plugin in the build.gradle of your project.
+
+Example of setting options in a init.d script
+
+    project.ext.set "versioner_setup",  { versioner, params ->
+        // Setup the versioner options for all projects
+        //We look at the branch name and make some rules
+        //for when we set the snapshot to true
+        def b = versioner.branch
+        if( b.startsWith('master')
+            || b.startsWith('hotfix')
+            || b.startsWith('release')
+            )
+            params.snapshot = false
+        else
+            params.snapshot = true
+    }
+
 Look at [com.sarhanm.versioner.VersionerOptions](../src/main/groovy/com/sarhanm/versioner/VersionerOptions.groovy) for a complete list of options.
 
 ### Scheme

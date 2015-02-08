@@ -24,14 +24,14 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertEquals "master" , versioner.getBranchName()
+            assertEquals "master" , versioner.getCleansedBranchName()
         }
 
         gitMock.demand.execute {params -> "remote/origin/master"}
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertEquals "master" , versioner.getBranchName()
+            assertEquals "master" , versioner.getCleansedBranchName()
         }
 
 
@@ -39,14 +39,14 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertEquals "feature-my-branch" , versioner.getBranchName()
+            assertEquals "feature-my-branch" , versioner.getCleansedBranchName()
         }
 
         gitMock.demand.execute {params -> "remote/origin/feature/my_branch"}
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertEquals "feature-my_branch" , versioner.getBranchName()
+            assertEquals "feature-my_branch" , versioner.getCleansedBranchName()
         }
 
         gitMock.demand.execute {params -> "feature/my.branch"}
@@ -54,7 +54,7 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertEquals "feature-my-branch" , versioner.getBranchName()
+            assertEquals "feature-my-branch" , versioner.getCleansedBranchName()
         }
     }
 
@@ -72,8 +72,8 @@ class VersionerTest {
             //Ensure that we are caching properly
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            def result = versioner.getBranchName()
-            def result2 = versioner.getBranchName()
+            def result = versioner.getCleansedBranchName()
+            def result2 = versioner.getCleansedBranchName()
             assertEquals result, result2
         }
     }
@@ -143,7 +143,7 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertEquals "hotfix-foobar" , versioner.getBranchName()
+            assertEquals "hotfix-foobar" , versioner.getCleansedBranchName()
             assertEquals "2.3.3.4.hotfix-foobar.adbcdf", versioner.getVersion()
         }
     }
