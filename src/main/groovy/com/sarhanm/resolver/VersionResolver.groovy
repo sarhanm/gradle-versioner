@@ -26,17 +26,21 @@ class VersionResolver implements Action<DependencyResolveDetails>{
 
     def logger = Logging.getLogger(VersionResolver)
 
-
     private Project project
     private VersionResolverOptions options
     private List<ResolutionAwareRepository> repositories = null
     private File manifestFile
+    private usedVersions
+    private computedManifest
 
     VersionResolver(Project project,VersionResolverOptions options = null, File manifestFile = null) {
         this.project = project
         this.repositories = null;
         this.manifestFile = manifestFile
         this.options = options
+
+        this.usedVersions = [:]
+        this.computedManifest = ['modules': usedVersions ]
     }
 
     @Synchronized
@@ -59,38 +63,50 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def range = new VersionRange(requestedVersion)
 
         if(range.valid) {
-            logger.debug "$requested is a valid range ($requestedVersion). Trying to resolve"
-            getRepos().each { repo ->
-
-                def result = new DefaultBuildableModuleComponentVersionSelectionResolveResult()
-
-                DependencyMetaData data = new DefaultDependencyMetaData(new DefaultModuleVersionIdentifier(
-                        requested.getGroup(),
-                        requested.getName(),
-                        requestedVersion))
-
-                repo.createResolver().remoteAccess.listModuleVersions(data, result)
-
-                if (result.state == BuildableModuleComponentVersionSelectionResolveResult.State.Listed) {
-                    def versionsList = result.versions.versions.findAll({ range.contains(it.version) })
-                            .collect({ new Version(it.version) }).sort()
-
-                    if (versionsList) {
-                        def versionToUse = versionsList.last().version
-                        logger.info "$requested.group:$requested.name using version $versionToUse"
-                        requestedVersion = versionToUse
-                        return
-                    }
-                }
-            }
+            requestedVersion = resolveVersion(requested.group,requested.name,requestedVersion,range)
         }
         else{
             logger.debug("$requested is not a valid range ($requestedVersion). Not trying to resolve")
         }
 
         if( requestedVersion != requested.version)
+        {
             details.useVersion requestedVersion
+            usedVersions["${details.requested.group}:${details.requested.name}"] = requestedVersion
+        }
 
+    }
+
+    def resolveVersion(String group,String name, String version, VersionRange range)
+    {
+        logger.debug "$group:$name:$version is a valid range. Trying to resolve"
+        def versionToReturn = version
+        getRepos().each { repo ->
+            if(versionToReturn != version)
+                return
+
+            def result = new DefaultBuildableModuleComponentVersionSelectionResolveResult()
+
+            DependencyMetaData data = new DefaultDependencyMetaData(new DefaultModuleVersionIdentifier(
+                    group,
+                    name,
+                    version))
+
+            repo.createResolver().remoteAccess.listModuleVersions(data, result)
+
+            if (result.state == BuildableModuleComponentVersionSelectionResolveResult.State.Listed) {
+                def versionsList = result.versions.versions.findAll({ range.contains(it.version) })
+                        .collect({ new Version(it.version) }).sort()
+
+                if (versionsList) {
+                    def versionToUse = versionsList.last().version
+                    logger.info "$group:$name using version $versionToUse"
+                    versionToReturn = versionToUse
+                }
+            }
+        }
+
+        return versionToReturn
     }
 
     def String resolveVersionFromManifest(DependencyResolveDetails details)
@@ -185,5 +201,11 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def manifest =  yaml.load(text)
         manifest
     }
+
+    def getComputedVersionManifest()
+    {
+        return computedManifest
+    }
+
 }
 

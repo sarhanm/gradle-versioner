@@ -36,6 +36,19 @@ class VersionResolutionPlugin implements Plugin<Project>{
 
             def resolver = new VersionResolver(project,params, file)
             project.configurations.all { resolutionStrategy.eachDependency(resolver) }
+
+            //Output the computed version manifest
+            if(params.outputComputedManifest)
+            {
+                def task = project.tasks.create(name: 'outputVersionManifest',
+                        description: 'Outputs the version manifest of all the resolved versions.',
+                        type: VersionManifestOutputTask) {
+                    outputFile  = project.file("$project.buildDir/version-manifest.yaml")
+                    versionResolver = resolver
+                }
+
+                project.tasks.build.dependsOn task
+            }
         }
     }
 }

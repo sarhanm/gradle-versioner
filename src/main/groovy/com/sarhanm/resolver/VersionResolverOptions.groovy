@@ -11,6 +11,8 @@ class VersionResolverOptions {
      * to the full list of versions that should be used in your project.
       */
     def VersionManifestOption manifest = new VersionManifestOption()
+
+    def boolean outputComputedManifest = false
 }
 
 class VersionManifestOption
