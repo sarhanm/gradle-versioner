@@ -18,7 +18,7 @@ class VersionerTest {
         def gitMock = new MockFor(GitExecutor.class)
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv { params -> null }
+        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
         gitMock.demand.execute {params -> "origin/master"}
 
         gitMock.use {
@@ -125,7 +125,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1..20) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -143,8 +143,12 @@ class VersionerTest {
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            assertEquals "hotfix-foobar" , versioner.getCleansedBranchName()
             assertEquals "2.3.3.4.hotfix-foobar.adbcdf", versioner.getVersion()
+            assertEquals "2.3", versioner.getMajorMinor()
+            assertEquals "3.4", versioner.getVersionPoint()
+            assertEquals 4, versioner.getHotfixNumber()
+            assertEquals "hotfix-foobar" , versioner.getCleansedBranchName()
+            assertEquals "adbcdf" , versioner.getCommitHash( )
         }
     }
 
@@ -321,8 +325,5 @@ class VersionerTest {
             assertEquals "2.3.4", versioner.getVersion()
         }
     }
-
-
-
 
 }
