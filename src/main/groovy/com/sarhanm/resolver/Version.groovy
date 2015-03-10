@@ -51,9 +51,24 @@ class Version implements  Comparable<Version>{
 
     def int compareTo(Version other)
     {
-        major <=> other.major ?: minor <=> other.minor ?: point <=> other.point ?: hotfix <=> other.hotfix ?: branch <=> other.branch
+        // Compare major, minor, point, hotfix as integers;
+        // compare branch alphabetically; ignore commit hash
+        getIntVersionNum(major) <=> getIntVersionNum(other.major) ?:
+        getIntVersionNum(minor) <=> getIntVersionNum(other.minor) ?:
+        getIntVersionNum(point) <=> getIntVersionNum(other.point) ?:
+        getIntVersionNum(hotfix) <=> getIntVersionNum(other.hotfix) ?:
+        branch <=> other.branch
     }
 
+    def int getIntVersionNum( String ver )
+    {
+        if ( ver == null || ver == '' || ver == 'n' )
+        {
+            return -1
+        }
+
+        Integer.parseInt(ver)
+    }
 
     def boolean equals(Object obj) {
         this.compareTo(obj) == 0
