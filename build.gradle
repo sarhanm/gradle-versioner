@@ -61,7 +61,7 @@ publishing {
 }
 
 bintray {
-    user = 'steveperrin'
+    user = 'sarhanm'
     key = System.env.BINTRAYTOKEN
     publications = ['mavenJava']
     dryRun = false
