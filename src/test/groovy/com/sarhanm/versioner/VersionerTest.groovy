@@ -146,9 +146,13 @@ class VersionerTest {
             assertEquals "2.3.3.4.hotfix-foobar.adbcdf", versioner.getVersion()
             assertEquals "2.3", versioner.getMajorMinor()
             assertEquals "3.4", versioner.getVersionPoint()
-            assertEquals 4, versioner.getHotfixNumber()
             assertEquals "hotfix-foobar" , versioner.getCleansedBranchName()
-            assertEquals "adbcdf" , versioner.getCommitHash( )
+            assertEquals "adbcdf" , versioner.getCommitHash()
+
+            assertEquals 2, versioner.getMajorNumber()
+            assertEquals 3, versioner.getMinorNumber()
+            assertEquals 3, versioner.getPointNumber()
+            assertEquals 4, versioner.getHotfixNumber()
         }
     }
 

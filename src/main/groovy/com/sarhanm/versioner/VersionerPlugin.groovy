@@ -66,9 +66,9 @@ class VersionerPlugin implements Plugin<Project>{
 
         //Adding git data so it can be used in the build script
         GitData data = project.extensions.create("gitdata",GitData)
-        data.major = versioner.getMajorMinor()
-        data.minor = versioner.getMajorMinor()
-        data.point = versioner.getVersionPoint()
+        data.major = versioner.getMajorNumber()
+        data.minor = versioner.getMinorNumber()
+        data.point = versioner.getPointNumber()
         data.hotfix = versioner.getHotfixNumber()
         data.branch = versioner.branch
         data.commit = versioner.commitHash
