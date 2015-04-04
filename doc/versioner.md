@@ -12,15 +12,11 @@ Simple Example:
 Example using versioner options:
 
     #gradle.build
-    
-    // Note: order is important. 
-    //Options must be specified before plugin is applied
-    import com.sarhanm.versioner.VersionerOptions
-    project.extensions.create('versioner', VersionerOptions)
+
+    apply plugin: 'com.sarhanm.versioner'
     versioner{
         snapshot = true
-    }    
-    apply plugin: 'com.sarhanm.versioner'
+    }
 
 Because of [GRADLE-2407](https://issues.gradle.org/browse/GRADLE-2407) you cannot apply this plugin in any initializing scripts (scripts found in init.d).
 This is a common case for most companies and to get around the limitation the plugin will look for a closure in the project's properties that it will call before the version is set. You will still need to apply the plugin in the build.gradle of your project.
