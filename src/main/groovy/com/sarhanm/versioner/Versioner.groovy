@@ -13,6 +13,7 @@ class Versioner
     static final CMD_BRANCH = "rev-parse --abbrev-ref HEAD"
     static final CMD_MAJOR_MINOR = "describe --match v* --abbrev=0"
     static final CMD_POINT = "rev-list HEAD --count"
+    static final CMD_POINT_SOLID_BRANCH = "describe --long --match v*"
     static final CMD_COMMIT_HASH =  "rev-parse --short HEAD"
 
     private cache = [:]
@@ -58,6 +59,21 @@ class Versioner
             return point
         }
         else{
+
+            if( useSolidMajorMinorVersion() )
+            {
+                //The point number is the number of commits since the last v{major}.{minor} tag.
+                //If no tag has been set yet, we fallback to the number of commits from the beginning of time.
+                String output = executeGit(CMD_POINT_SOLID_BRANCH)
+
+                if(output)
+                {
+                    def parts = output.trim().split("-")
+                    if(parts.length > 1)
+                        return parts[1]
+                }
+            }
+
             //Number of commits since start of time.
             String output = executeGit(CMD_POINT)
 
