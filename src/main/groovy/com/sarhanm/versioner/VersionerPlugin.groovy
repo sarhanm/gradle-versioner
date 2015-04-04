@@ -25,7 +25,7 @@ class VersionerPlugin implements Plugin<Project>{
         project.afterEvaluate {
             def rootDir = project.projectDir
 
-            logger.quiet "Initial project $project.name version: $project.version"
+            logger.info "Initial project $project.name version: $project.version"
 
             def params = project.extensions.getByType(VersionerOptions)
             def versioner = new Versioner(params, rootDir)
