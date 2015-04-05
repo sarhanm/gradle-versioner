@@ -74,11 +74,7 @@ class Versioner
                 }
             }
 
-            //Number of commits since start of time.
-            String output = executeGit(CMD_POINT)
-
-            //Default to zero if we are not able to get the point version
-            return output == null ? "0" : output.trim()
+            return totalCommits
         }
     }
 
@@ -179,6 +175,17 @@ class Versioner
         return false
     }
 
+    /**
+     *
+     * @return total commits since the inception of the repo
+     */
+    def getTotalCommits()
+    {
+        String output = executeGit(CMD_POINT)
+
+        //Default to zero
+        return output == null ? "0" : output.trim()
+    }
 
     /******************/
     /**** Private *****/
