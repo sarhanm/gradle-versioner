@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Only publish the master branch
-if [ "$TRAVIS_BRANCH" == "master" ]; then
+# Only publish the master branch that are NOT pull requests.
+if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     ./gradlew check bintrayUpload
 else
     ./gradlew check
