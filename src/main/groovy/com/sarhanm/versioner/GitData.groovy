@@ -12,4 +12,5 @@ class GitData {
     def hotfix;     // Optional hotfix version number (0.0.0.n)
     def branch;     // Git branch name ("master")
     def commit;     // Git short commit hash ("5f817fb142")
+    def totalCommits; //Total number of commits.
 }
