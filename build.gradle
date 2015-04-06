@@ -1,3 +1,5 @@
+import com.sarhanm.versioner.VersionerOptions
+
 // Apply versioner first so we set the version number correctly
 // in case another plugin doesn't wait until the project is evaluated before execution.
 buildscript {
@@ -13,9 +15,12 @@ buildscript {
         classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
     }
 }
-/*plugins{
-    id 'com.sarhanm.versioner' version ''
-}*/
+
+project.extensions.create("versioner", VersionerOptions)
+versioner{
+    //Community Plugins are required to have a clean version string.
+    omitBranchMetadataOnSolidBranch=true
+}
 
 apply plugin: 'com.sarhanm.versioner'
 apply plugin: "com.gradle.plugin-publish"
