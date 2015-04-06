@@ -6,11 +6,11 @@ package com.sarhanm.versioner
  * @author mohammad sarhan
  */
 class GitData {
-    def major;      // Major version number (n.0.0)
-    def minor;      // Minor version number (0.n.0)
-    def point;      // Point version number (0.0.n)
-    def hotfix;     // Optional hotfix version number (0.0.0.n)
-    def branch;     // Git branch name ("master")
-    def commit;     // Git short commit hash ("5f817fb142")
-    def totalCommits; //Total number of commits.
+    int major;          // Major version number (n.0.0)
+    int minor;          // Minor version number (0.n.0)
+    int point;          // Point version number (0.0.n)
+    int hotfix;         // Optional hotfix version number (0.0.0.n)
+    String branch;      // Git branch name ("master")
+    String commit;      // Git short commit hash ("5f817fb142")
+    int totalCommits;   // Total number of commits.
 }

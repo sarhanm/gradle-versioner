@@ -35,7 +35,10 @@ class Versioner
         this.options = versionerOptions
     }
 
-    def getHotfixNumber()
+    /**
+     * @return Hotfix version number as integer
+     */
+    public int getHotfixNumber()
     {
         def branchName = getBranchNameRaw()
         def commitList = executeGit("log --oneline $branchName...$options.commonHotfixBranch")
@@ -43,7 +46,11 @@ class Versioner
         return commitList ? commitList.split('\n').length : 0
     }
 
-    def getVersionPoint()
+    /**
+     * @return Point version number as String.  May contain both point
+     * and hotfix numbers for a hotfix branch (such as "5.2")
+     */
+    public String getVersionPoint()
     {
         if(isHotfix())
         {
@@ -78,7 +85,10 @@ class Versioner
         }
     }
 
-    def getMajorMinor()
+    /**
+     * @return Major and minor version numbers as String (such as "3.4")
+     */
+    public String getMajorMinor()
     {
         //We only want certain branches to have solid versions
         if(!useSolidMajorMinorVersion())
@@ -92,13 +102,42 @@ class Versioner
         return output.substring(1).trim()
     }
 
+    /**
+     * @return Major version number as integer
+     */
+    public int getMajorNumber()
+    {
+        def majorMinorSplit = getMajorMinor().split('\\.')
+        return Integer.parseInt( majorMinorSplit[0] )
+    }
+
+    /**
+     * @return Minor version number as integer
+     */
+    public int getMinorNumber()
+    {
+        def majorMinorSplit = getMajorMinor().split('\\.')
+        return Integer.parseInt( majorMinorSplit[1] )
+    }
+
+    /**
+     * @return Point version number as integer
+     */
+    public int getPointNumber()
+    {
+        def pointSplit = getVersionPoint().split('\\.')
+        return Integer.parseInt( pointSplit[0] )
+    }
+
+    /**
+     * @return Branch name without slashes or dots
+     */
     def String getCleansedBranchName()
     {
         return branch.replaceAll('/', '-').replaceAll('\\.','-')
     }
 
     /**
-     *
      * @return Branch name without the remote and/or origin prefix
      */
     def String getBranch()
