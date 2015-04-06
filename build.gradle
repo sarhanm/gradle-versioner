@@ -4,10 +4,11 @@ import com.sarhanm.versioner.VersionerOptions
 // in case another plugin doesn't wait until the project is evaluated before execution.
 buildscript {
     repositories {
-        jcenter()
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        
+        jcenter()
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
