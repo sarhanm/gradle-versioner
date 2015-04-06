@@ -12,36 +12,20 @@ Simple Example:
 Example using versioner options:
 
     #gradle.build
-    
-    // Note: order is important. 
+
+     // Note: order is important.
     //Options must be specified before plugin is applied
     import com.sarhanm.versioner.VersionerOptions
     project.extensions.create('versioner', VersionerOptions)
     versioner{
         snapshot = true
-    }    
+    }
     apply plugin: 'com.sarhanm.versioner'
 
-Because of [GRADLE-2407](https://issues.gradle.org/browse/GRADLE-2407) you cannot apply this plugin in any initializing scripts (scripts found in init.d).
-This is a common case for most companies and to get around the limitation the plugin will look for a closure in the project's properties that it will call before the version is set. You will still need to apply the plugin in the build.gradle of your project.
-
-Example of setting options in a init.d script
-
-    project.ext.set "versioner_setup",  { versioner, params ->
-        // Setup the versioner options for all projects
-        //We look at the branch name and make some rules
-        //for when we set the snapshot to true
-        def b = versioner.branch
-        if( b.startsWith('master')
-            || b.startsWith('hotfix')
-            || b.startsWith('release')
-            )
-            params.snapshot = false
-        else
-            params.snapshot = true
-    }
-
 Look at [com.sarhanm.versioner.VersionerOptions](../src/main/groovy/com/sarhanm/versioner/VersionerOptions.groovy) for a complete list of options.
+
+NOTE: Because of [GRADLE-2407](https://issues.gradle.org/browse/GRADLE-2407) you cannot apply this plugin in any initializing scripts (scripts found in init.d).
+This is a common case for most companies. If this is something you need, please vote up the issue.
 
 ### Scheme
 
@@ -49,11 +33,11 @@ The version scheme:
 
 #### For branch names master, release/.* and hotfix/.*
 
-    {major}.{minor}.{#-of-commits}.{hotfix-number}.{branch-name}.{short-commit-hash}
+    {major}.{minor}.{#-of-commits-from-tag}.{hotfix-number}.{branch-name}.{short-commit-hash}
  
 #### All other branches
 
-    0.0.{#-of-commits}.{hotfix-number}.{branch-name}.{short-commit-hash}
+    0.0.{#-of-commits-from-beginning-of-time}.{hotfix-number}.{branch-name}.{short-commit-hash}
 
 NOTE: in this case, we namespace out the version string and prepend with 0.0. More on this and how to configure it below. 
 
@@ -73,16 +57,20 @@ Example tags:
     v1.0
     v2.3
 
-This value will be used only for branch names "master", "hotfix/.*" and "release/.*"
+This value will be used only for branch names "master", "hotfix/.*" and "release/.*". 
 
 All other branches get a major.minor of '0.0'. This helps keep the version scheme uploaded to nexus clean (or any other artifact repository ).
  
 This can be configured via [com.sarhanm.versioner.VersionerOptions:solidBranchRegex](../src/main/groovy/com/sarhanm/versioner/VersionerOptions.groovy), so you could configure the plugin to always use the git tag for all branches. 
  
-### {#-of-commits}:
+### {#-of-commits-from-tag}:
  
-The is the number of commits since the inception of the git repo.
-  
+The is the number of commits from the most recent v{major}.{minor} tag.
+
+## {#-of-commits-from-beginning-of-time}
+
+This is the number of commits since the inception of the git repo.
+
 ### {hotfix-number}:
 
 This is the number of commits in the current branch that do not yet exist in the master branch. This assumes that hotfix branches are forked from master. 
@@ -109,8 +97,16 @@ NOTE: The reason we use environment variables to determine the branch name is th
 
 This is the short commit hash. Super useful to look at an artifact and know how to get to it to start a hotfix or developmet.
 
-## NOTE:
-Travis CI has a default git depth of 50. This means that your {#-of-commits} will stay at 50 unless you change the depth of your clone to something higher.
+## Shallow Clones
+For any shallow clone of the repo:
+
+1. {#-of-commits-from-beginning-of-time} will be based on the depth of your clone. Therefore the value is always wrong in a shallow clone.
+
+1. {#-of-commits-from-tag} will only work if the clone is deep enough to retrieve the latest tag. Otherwise the {#-of-commits-from-beginning-of-time} is used   
+
+Travis CI has a default git depth of 50. Make sure to set your depth based on the above information
+
+Example .travis file
 
 ```
 git:

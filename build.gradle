@@ -3,19 +3,27 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+        classpath 'com.sarhanm:gradle-versioner:1.0.81.master.efbb95a'
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
     }
 }
-plugins{
-    id 'com.sarhanm.versioner' version '1.0.50.master.6012e66'
-}
+/*plugins{
+    id 'com.sarhanm.versioner' version ''
+}*/
 
+apply plugin: 'com.sarhanm.versioner'
+apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
+
 
 group = 'com.sarhanm'
 
@@ -35,7 +43,7 @@ apply plugin: 'com.jfrog.bintray'
 task wrapper(type: Wrapper) {
     gradleVersion = '2.2.1'
 }
-    
+
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
@@ -61,7 +69,7 @@ publishing {
 }
 
 bintray {
-    user = 'steveperrin'
+    user = 'sarhanm'
     key = System.env.BINTRAYTOKEN
     publications = ['mavenJava']
     dryRun = false
@@ -81,4 +89,28 @@ bintray {
             attributes = ['gradle-plugin': ['com.sarhanm.versioner:com.sarhanm:gradle-versioner','com.sarhanm.version-resolver:com.sarhanm:gradle-versioner'] ]
         }
     }
+}
+
+pluginBundle {
+  website = 'https://github.com/sarhanm/gradle-versioner'
+  vcsUrl = 'https://github.com/sarhanm/gradle-versioner'
+
+  description = 'Set the project version based on git metadata and number of commits.'
+
+  plugins {
+
+    versionerPlugin {
+      id = 'com.sarhanm.versioner'
+      displayName = 'Gradle Project Version Set Plugin'
+      description = 'Set the project version based on git metatdata and number of commits. Example: 1.0.81.master.efbb95a'
+      tags = ['versioner', 'version', 'git', 'scm', 'commits', 'auto version', 'auto']
+    }
+
+    versionResolverPlugin {
+      id = 'com.sarhanm.version-resolver'
+      displayName = 'Version Resolver: Resolve Dependencies From Global Manifest'
+      description = 'Allows you to resolve versions for all dependencies from a global manifest rather than hard coding versions in each build.gradle file'
+      tags = ['versioner', 'version', 'resolve', 'yaml', 'manifest']
+    }
+  }
 }

@@ -7,11 +7,9 @@ package com.sarhanm.versioner
  * Example:
  *
  * build.gradle:
- *     project.extensions.create('versioner',com.sarhanm.versioner.VersionerOptions)
  *     versioner{
  *         snapshot = true
  *     }
- *
  *
  * @author mohammad sarhan
  */
