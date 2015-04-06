@@ -9,7 +9,7 @@ buildscript {
     }
 }
 plugins{
-    id 'com.sarhanm.versioner' version '1.0.50.master.6012e66'
+    id 'com.sarhanm.versioner' version '1.0.81.master.efbb95a'
 }
 
 apply plugin: 'groovy'
