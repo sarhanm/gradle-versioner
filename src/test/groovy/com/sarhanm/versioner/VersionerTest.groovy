@@ -431,4 +431,34 @@ class VersionerTest {
             assertEquals "2.3.4.master.adbcdf", versioner.getVersion()
         }
     }
+
+    @Test
+    public void testGitData()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(1..5) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
+            else if (params == Versioner.CMD_POINT) "4"
+            else if (params == Versioner.CMD_COMMIT_HASH) "adbcdf"
+            else if (params == Versioner.CMD_POINT_SOLID_BRANCH) ""
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            GitData gitData = new GitData()
+            gitData.major = versioner.getMajorNumber()
+            gitData.minor = versioner.getMinorNumber()
+            gitData.point = versioner.getPointNumber()
+            gitData.totalCommits = versioner.getTotalCommits()
+        }
+    }
+
 }

@@ -37,7 +37,7 @@ class VersionerPlugin implements Plugin<Project>{
         data.hotfix = versioner.getHotfixNumber()
         data.branch = versioner.branch
         data.commit = versioner.commitHash
-        data.totalCommits = versioner.getTotalCommits()
+        data.totalCommits = Integer.parseInt(versioner.getTotalCommits())
     }
 }
 

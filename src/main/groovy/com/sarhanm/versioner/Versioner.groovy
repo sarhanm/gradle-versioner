@@ -218,7 +218,7 @@ class Versioner
      *
      * @return total commits since the inception of the repo
      */
-    def getTotalCommits()
+    def String getTotalCommits()
     {
         String output = executeGit(CMD_POINT)
 
