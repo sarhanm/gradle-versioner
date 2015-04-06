@@ -120,3 +120,26 @@ pluginBundle {
     }
   }
 }
+
+/**
+ * Grabs the values from the env and writes to a file that can be used by the plugin-publish plugin.
+ * This allows us define the API and secrete securely in travis-ci
+ */
+task setupPluginUpload << {
+    def file = file("build/plugin-publish-keys.properties")
+    def key=System.env.gradlePublishKey
+    def secret = System.env.gradlePublishSecret
+
+    if( !key || !secret)
+    {
+        throw new RuntimeException("gradlePublishKey and/or gradlePublishSecret are not defined environment variables")
+    }
+
+    def props = new Properties()
+    props.setProperty("gradle.publish.key", key)
+    props.setProperty("gradle.publish.secret", secret)
+    props.store(file.newWriter(), "Generated for use with plugin-publish-plugin")
+    System.properties.setProperty("com.gradle.login.properties.file", file.absolutePath)
+}
+
+tasks.publishPlugins.dependsOn tasks.setupPluginUpload
