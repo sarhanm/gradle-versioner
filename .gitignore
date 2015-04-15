@@ -7,3 +7,4 @@
 *.eml
 build/
 bin/
+tmp/

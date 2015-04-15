@@ -26,7 +26,9 @@ class VersionerPlugin implements Plugin<Project>{
         if (!params.disabled) {
             logger.info "Initial project $project.name version: $project.version"
             project.version = versioner.getVersion()
-            logger.quiet "Set project '$project.name' version to : $project.version"
+
+            //Trying to make this log line machine readable and findable in long/huge logs
+            logger.quiet "versioner:${project.name}=$project.version"
         }
 
         //Adding git data so it can be used in the build script
