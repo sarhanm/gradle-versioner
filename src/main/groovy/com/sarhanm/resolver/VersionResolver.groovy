@@ -13,9 +13,10 @@ import org.gradle.api.logging.Logging
 import org.gradle.internal.Transformers
 import org.gradle.internal.component.model.DefaultDependencyMetaData
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.util.CollectionUtils
+
+//import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentVersionSelectionResolveResult
 import org.yaml.snakeyaml.Yaml
 
 /**
@@ -85,7 +86,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
             if(versionToReturn != version)
                 return
 
-            def result = new DefaultBuildableModuleComponentVersionSelectionResolveResult()
+            def result = new DefaultBuildableModuleVersionListingResolveResult()
 
             DependencyMetaData data = new DefaultDependencyMetaData(new DefaultModuleVersionIdentifier(
                     group,
@@ -94,14 +95,24 @@ class VersionResolver implements Action<DependencyResolveDetails>{
 
             repo.createResolver().remoteAccess.listModuleVersions(data, result)
 
-            if (result.state == BuildableModuleComponentVersionSelectionResolveResult.State.Listed) {
-                def versionsList = result.versions.versions.findAll({ range.contains(it.version) })
-                        .collect({ new Version(it.version) }).sort()
+            if (result.hasResult()) {
+                def latestVersion = null
+                result.versions.each{
 
-                if (versionsList) {
-                    def versionToUse = versionsList.last().version
-                    logger.info "$group:$name using version $versionToUse"
-                    versionToReturn = versionToUse
+                    //NOTE: we could use the sort and other cool grooyish methods,
+                    // but this should be a lot more efficient as a single pass
+                    if(range.contains(it)) {
+                        def current= new Version(it)
+                        if (latestVersion == null)
+                            latestVersion = current
+                        else if (latestVersion.compareTo(current) < 0)
+                            latestVersion = current
+                    }
+                }
+
+                if (latestVersion) {
+                    logger.info "$group:$name using version $latestVersion.version"
+                    versionToReturn = latestVersion.version
                 }
             }
         }

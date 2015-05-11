@@ -11,8 +11,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
-        classpath 'com.sarhanm:gradle-versioner:1.0.81.master.efbb95a'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath 'com.sarhanm:gradle-versioner:2.0.17'
         classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
     }
 }
@@ -47,7 +47,7 @@ dependencies {
 apply plugin: 'com.jfrog.bintray'
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2.1'
+    gradleVersion = '2.4'
 }
 
 task sourcesJar(type: Jar) {
