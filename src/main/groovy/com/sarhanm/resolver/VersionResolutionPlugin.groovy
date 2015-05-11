@@ -17,15 +17,12 @@ class VersionResolutionPlugin implements Plugin<Project>{
         project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
         project."$VERSION_RESOLVER".extensions.create("versionManifest", VersionManifestOption)
 
-        if (project.configurations.findByName('versionManifest') == null) {
-            project.configurations.create('versionManifest')
-        }
+        def versionManifest = project.configurations.maybeCreate('versionManifest')
 
         project.afterEvaluate {
             def params = project."$VERSION_RESOLVER"
             params.manifest = params.versionManifest
 
-            def versionManifest = project.configurations.findByName('versionManifest')
             def resolved = versionManifest.resolve()
 
             def file = null
@@ -35,7 +32,14 @@ class VersionResolutionPlugin implements Plugin<Project>{
             }
 
             def resolver = new VersionResolver(project,params, file)
-            project.configurations.all { resolutionStrategy.eachDependency(resolver) }
+            project.configurations.all {
+
+                // We've already resolved the versionManifest,
+                // and modifying a resolved configuration will fail the build starting
+                // in gradle 3+
+                if(it.name != versionManifest.name)
+                    resolutionStrategy.eachDependency(resolver)
+            }
 
             //Output the computed version manifest
             if(params.outputComputedManifest)
