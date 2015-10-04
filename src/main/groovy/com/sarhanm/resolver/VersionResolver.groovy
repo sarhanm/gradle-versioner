@@ -94,6 +94,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                 return
             }
 
+
             def result = new DefaultBuildableModuleVersionListingResolveResult()
 
             DependencyMetaData data = new DefaultDependencyMetaData(new DefaultModuleVersionIdentifier(
@@ -101,7 +102,10 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                     name,
                     version))
 
-            resolver.remoteAccess.listModuleVersions(data, result)
+            if( resolver.local)
+                resolver.localAccess.listModuleVersions(data, result)
+            else
+                resolver.remoteAccess.listModuleVersions(data, result)
 
             if (result.hasResult()) {
                 def latestVersion = null
