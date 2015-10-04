@@ -8,7 +8,11 @@
 | 2.2.1 - 2.3    | 2.0+                         |
 | >= 2.4         | 2.1+                         |
 
- 
+
+## How to Install
+
+https://plugins.gradle.org/plugin/com.sarhanm.versioner
+
 ## The Versioner
 
 For gradle projects, this plugin can generate a version based on git tags and other pieces of information from the git repo. Because the version is derived from the state of your git repo, you don't have to worry about maintaining the version value in your gradle.build file as you merge and/or branch; it'll always output the correct value.
