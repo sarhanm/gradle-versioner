@@ -86,6 +86,14 @@ class VersionResolver implements Action<DependencyResolveDetails>{
             if(versionToReturn != version)
                 return
 
+            def resolver = repo.createResolver()
+
+            //We don't want to include the local repo if we are trying to re-fresh dependencies
+            if(this.project.gradle.startParameter.refreshDependencies && resolver.local)
+            {
+                return
+            }
+
             def result = new DefaultBuildableModuleVersionListingResolveResult()
 
             DependencyMetaData data = new DefaultDependencyMetaData(new DefaultModuleVersionIdentifier(
@@ -93,7 +101,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
                     name,
                     version))
 
-            repo.createResolver().remoteAccess.listModuleVersions(data, result)
+            resolver.remoteAccess.listModuleVersions(data, result)
 
             if (result.hasResult()) {
                 def latestVersion = null
