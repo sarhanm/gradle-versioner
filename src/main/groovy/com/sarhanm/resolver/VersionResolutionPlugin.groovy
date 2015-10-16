@@ -34,6 +34,17 @@ class VersionResolutionPlugin implements Plugin<Project>{
             def resolver = new VersionResolver(project,params, file)
             project.configurations.all {
 
+                def firstLevelDeps = [:]
+                incoming.beforeResolve { resolvableDep ->
+                    resolvableDep.dependencies.each{ dep ->
+                        //first level dependencies
+                        firstLevelDeps["$dep.group:$dep.name"] = dep.version
+                    }
+                    resolver.addFirstLevelDeps directDeps
+                }
+
+
+
                 // We've already resolved the versionManifest,
                 // and modifying a resolved configuration will fail the build starting
                 // in gradle 3+

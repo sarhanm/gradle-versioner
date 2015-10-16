@@ -33,6 +33,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     private File manifestFile
     private usedVersions
     private computedManifest
+    private firstLevelDeps = [:]
 
     VersionResolver(Project project,VersionResolverOptions options = null, File manifestFile = null) {
         this.project = project
@@ -138,11 +139,9 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def ver = requested.version
         def group = requested.group
         def rname = requested.name
-        def isExplicit = isExplicitlyVersioned(group,rname)
-
 
         //We don't want to set versions for dependencies explicitly set in this project.
-        if(ver != 'auto' && isExplicit)
+        if(isExplicitlyVersioned(group, rname))
             return ver
 
         if( manifestFile || options && options.manifest && options.manifest.url)
@@ -158,21 +157,16 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         ver
     }
 
+    /**
+     *
+     * @param group
+     * @param name
+     * @return If the module was explicitly versioned or not.
+     */
     @Memoized
     private boolean isExplicitlyVersioned(String group, String name)
     {
-        def explicit = false
-        project?.configurations?.all{
-            dependencies.each{
-                if(it.name == name && it.group == group)
-                {
-                    explicit = true
-                    return explicit
-                }
-            }
-        }
-
-        return explicit
+        firstLevelDeps.get("$group:$name", "auto") != 'auto'
     }
 
 
@@ -230,5 +224,8 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         return computedManifest
     }
 
+    void setFirstLevelDeps(firstLevelDeps) {
+        this.firstLevelDeps = firstLevelDeps
+    }
 }
 

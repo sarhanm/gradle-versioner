@@ -92,6 +92,33 @@ class VersionResolveViaManifestTest {
 
     }
 
+    @Test
+    void testExplicitDependencyVersion()
+    {
+        def file = new File("src/test/resources/versions.yaml")
+
+        def options = getOption(file.toURI().toString())
+
+        def group = 'com.coinfling'
+        def name = 'auth-service-api'
+
+        def selectorMock = new MockFor(ModuleVersionSelector)
+        selectorMock.demand.getVersion{ params-> '1.2.3'}
+        selectorMock.demand.getGroup{ params -> group}
+        selectorMock.demand.getName{ params -> name}
+
+        def detailsMock = new MockFor(DependencyResolveDetails)
+        detailsMock.demand.getRequested{params-> selectorMock.proxyInstance()}
+
+        def resolver = new VersionResolver(null, options)
+        resolver.firstLevelDeps = ["$group:$name": '1.2.3']
+
+        def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
+        assert ver == "1.2.3"
+
+    }
+
+
     //@Test
     void testRemoteLocation() {
 
