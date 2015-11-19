@@ -18,10 +18,8 @@ class VersionerPlugin implements Plugin<Project>{
         if (project.extensions.findByType(VersionerOptions) == null)
             project.extensions.create("versioner", VersionerOptions)
 
-        def rootDir = project.projectDir
-
         def params = project.extensions.getByType(VersionerOptions)
-        def versioner = new Versioner(params, rootDir)
+        def versioner = new Versioner(params, project)
 
         if (!params.disabled) {
             logger.info "Initial project $project.name version: $project.version"

@@ -1,5 +1,7 @@
 package com.sarhanm.versioner
 
+import org.gradle.api.Project
+
 /**
  * Generates a solid and snapshot version using information
  * derived from the git repository
@@ -28,9 +30,9 @@ class Versioner
         this.options = new VersionerOptions()
     }
 
-    public Versioner(versionerOptions, File rootDir)
+    public Versioner(versionerOptions, Project project)
     {
-        this.gitExecutor = new GitExecutor(rootDir)
+        this.gitExecutor = new GitExecutor(project)
         this.envReader = new EnvReader()
         this.options = versionerOptions
     }
