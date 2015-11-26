@@ -18,7 +18,7 @@ class VersionerTest {
         def gitMock = new MockFor(GitExecutor.class)
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
         gitMock.demand.execute {params -> "origin/master"}
 
         gitMock.use {
@@ -63,7 +63,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
         gitMock.demand.execute(1){ params -> "foobar"}
@@ -83,7 +83,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -125,7 +125,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..20) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -161,7 +161,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -186,7 +186,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -210,7 +210,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -231,11 +231,46 @@ class VersionerTest {
     }
 
     @Test
+    void testToStringVersion()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(4) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v3.9"
+            else if (params == Versioner.CMD_POINT) "1005"
+            else if (params == Versioner.CMD_COMMIT_HASH) "adbcdff"
+            else if (params == Versioner.CMD_POINT_SOLID_BRANCH) "v3.9-1005-gcd4c01a"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            assertEquals "3.9.1005.master.adbcdff", versioner.toString()
+        }
+    }
+
+    @Test
+    void testToStringVersionWithDisabledVersioner()
+    {
+        def versioner = new Versioner()
+        // Test the disabled behavior, normally should return the
+        // initial project version but the test constructor uses 1.0
+        versioner.options.disabled = true
+        assertEquals "1.0", versioner.toString()
+    }
+
+    @Test
     void testSnapshotVersion()
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -260,7 +295,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -286,7 +321,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -311,7 +346,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -336,7 +371,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -362,7 +397,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -387,7 +422,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -412,7 +447,7 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
@@ -437,27 +472,33 @@ class VersionerTest {
     {
         def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1..10) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
         def gitMock = new MockFor(GitExecutor.class)
 
-        gitMock.demand.execute(1..5) { params ->
+        gitMock.demand.execute(1..6) { params ->
             if (params == Versioner.CMD_BRANCH) "master"
             else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
             else if (params == Versioner.CMD_POINT) "4"
             else if (params == Versioner.CMD_COMMIT_HASH) "adbcdf"
             else if (params == Versioner.CMD_POINT_SOLID_BRANCH) ""
+            else if (params.startsWith("log --oneline ")) "one\ntwo\nthree\nfour"
             else throw new Exception("Unaccounted for method call")
         }
 
         gitMock.use {
             def versioner = new Versioner()
             versioner.envReader = envMock.proxyInstance()
-            GitData gitData = new GitData()
-            gitData.major = versioner.getMajorNumber()
-            gitData.minor = versioner.getMinorNumber()
-            gitData.point = versioner.getPointNumber()
-            gitData.totalCommits = versioner.getTotalCommits()
+            GitData gitData = new GitData(versioner)
+
+            assertEquals gitData.version, versioner.getVersion()
+            assertEquals gitData.major, versioner.getMajorNumber()
+            assertEquals gitData.minor, versioner.getMinorNumber()
+            assertEquals gitData.point, versioner.getPointNumber()
+            assertEquals gitData.hotfix, versioner.getHotfixNumber()
+            assertEquals gitData.branch, versioner.branch
+            assertEquals gitData.commit, versioner.commitHash
+            assertEquals gitData.totalCommits, Integer.parseInt(versioner.getTotalCommits())
         }
     }
 

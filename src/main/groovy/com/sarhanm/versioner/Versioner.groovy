@@ -1,6 +1,8 @@
 package com.sarhanm.versioner
 
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
+import groovy.transform.Memoized
 
 /**
  * Generates a solid and snapshot version using information
@@ -21,6 +23,9 @@ class Versioner
     private cache = [:]
     private GitExecutor gitExecutor
     private EnvReader envReader
+    private String projectName
+    private String initialVersion
+    private Logger logger
     def VersionerOptions options
 
     public Versioner()
@@ -28,6 +33,10 @@ class Versioner
         this.gitExecutor = new GitExecutor()
         this.envReader = new EnvReader()
         this.options = new VersionerOptions()
+        // for unit testing we mock these two
+        this.projectName = "testProject"
+        this.initialVersion = "1.0"
+        this.logger = null
     }
 
     public Versioner(versionerOptions, Project project)
@@ -35,6 +44,27 @@ class Versioner
         this.gitExecutor = new GitExecutor(project)
         this.envReader = new EnvReader()
         this.options = versionerOptions
+        this.projectName = project.name
+        this.initialVersion = project.version
+        this.logger = project.logger
+    }
+
+    @Memoized
+    public String toString()
+    {
+        if (options.disabled)
+        {
+            return initialVersion
+        }
+
+        logger?.info "Initial project $projectName version: $initialVersion"
+
+        def computedVersion = getVersion()
+
+        //Trying to make this log line machine readable and findable in long/huge logs
+        logger?.quiet "versioner:${projectName}=$computedVersion"
+
+        computedVersion
     }
 
     /**
@@ -156,6 +186,7 @@ class Versioner
         branchName
     }
 
+    @Memoized
     def String getBranchNameRaw()
     {
         //Either from jenkins or travis
