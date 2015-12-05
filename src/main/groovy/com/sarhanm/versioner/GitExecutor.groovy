@@ -1,33 +1,43 @@
 package com.sarhanm.versioner
 
+import org.gradle.api.Project
+
 /**
- * Seperate class so we can mock and test
+ * Separate class so we can mock and test
  * @author mohammad sarhan
  */
 class GitExecutor
 {
-    def File rootDir
-    GitExecutor(def File rootDir) {
-        this.rootDir = rootDir
+    def Project project
+    GitExecutor(def Project project) {
+        this.project = project
     }
 
-/**
+    /**
      * Executes the git command
      * @param cmdArgs
-     * @return
+     * @return output from command execution
      */
     def execute(cmdArgs)
     {
         def cmd = "git " + cmdArgs
-        def proc = cmd.execute(null, rootDir)
 
-        proc.waitFor()
+        new ByteArrayOutputStream().withStream { output ->
+            new ByteArrayOutputStream().withStream { error ->
 
-        if( proc.exitValue() != 0 )
-            return null;
+                def result = project.exec {
+                    commandLine = cmd.split(' ') as List
+                    workingDir = project.projectDir
+                    ignoreExitValue = true
+                    standardOutput = output
+                    errorOutput = error
+                }
 
-        def output = proc.in.text
+                if ( result.exitValue == 0 )
+                    return output.toString()
 
-        return output
+                return null
+            }
+        }
     }
 }
