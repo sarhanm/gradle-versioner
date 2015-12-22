@@ -33,6 +33,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     private File manifestFile
     private usedVersions
     private computedManifest
+    private siblingProject = new HashSet();
 
     VersionResolver(Project project,VersionResolverOptions options = null, File manifestFile = null) {
         this.project = project
@@ -42,6 +43,9 @@ class VersionResolver implements Action<DependencyResolveDetails>{
 
         this.usedVersions = [:]
         this.computedManifest = ['modules': usedVersions ]
+
+        project?.getParent()?.subprojects?.each { siblingProject.add("${it.group}:${it.name}"); }
+
     }
 
     @Synchronized
@@ -140,6 +144,10 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def rname = requested.name
         def isExplicit = isExplicitlyVersioned(group,rname)
 
+        // Siblings are always versioned together.
+        if(siblingProject.contains("${group}:${rname}"))
+            return ver
+
 
         //We don't want to set versions for dependencies explicitly set in this project.
         if(ver != 'auto' && isExplicit)
@@ -163,6 +171,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     {
         def explicit = false
         project?.configurations?.all{
+
             dependencies.each{
                 if(it.name == name && it.group == group)
                 {
