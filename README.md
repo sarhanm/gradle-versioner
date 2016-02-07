@@ -1,4 +1,4 @@
-# [[Gradle Versioner Plugin|Home]
+# [Gradle Versioner Plugin](https://github.com/sarhanm/gradle-versioner/wiki)
 
 [![Build Status](https://travis-ci.org/sarhanm/gradle-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/gradle-versioner)
 
@@ -19,4 +19,4 @@ The values in the version string are derived from the state of the git repositor
 
 ## Documentation
 
-[[Full Documenation is on the wiki|Home]] 
+[Full Documenation is on the wiki](https://github.com/sarhanm/gradle-versioner/wiki) 
