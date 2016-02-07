@@ -8,6 +8,7 @@ import java.util.regex.Pattern
  * Testing to make sure the plugin works in all supported versions of gradle
  * @author Mohammad Sarhan
  */
+//This test fails on travis ci. not sure why yet.....
 class VersionerGradleVersionsTest //extends IntegrationSpec
 {
 

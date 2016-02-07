@@ -7,9 +7,13 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
         classpath 'com.sarhanm:gradle-versioner:2.1.15'
-        classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
+
+        //Leave at version 0.9.1 for now. Looks like the latest version
+        //has dependency issues that prevents a successful publish
+        // with gradle version 2.8+
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
     }
 }
 
@@ -42,7 +46,7 @@ dependencies {
 apply plugin: 'com.jfrog.bintray'
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+    gradleVersion = '2.10'
 }
 
 task sourcesJar(type: Jar) {
@@ -83,7 +87,7 @@ bintray {
         issueTrackerUrl = 'https://github.com/sarhanm/gradle-versioner/issues'
         vcsUrl = 'https://github.com/sarhanm/gradle-versioner.git'
         licenses = ['MIT']
-        labels = ['gradle', 'git', 'versioning', 'auto version']
+        labels = ['gradle', 'git', 'versioning', 'auto version' ,'versioner', 'version']
         publicDownloadNumbers = true
         version {
             name = project.version
@@ -95,10 +99,11 @@ bintray {
 
 
 pluginBundle {
-  website = 'https://github.com/sarhanm/gradle-versioner'
+  website = 'https://github.com/sarhanm/gradle-versioner/wiki'
   vcsUrl = 'https://github.com/sarhanm/gradle-versioner'
 
   description = 'Set the project version based on git metadata and number of commits.'
+  tags = ['versioner', 'version', 'git', 'scm', 'commits', 'auto version', 'auto', 'gradle']
 
   plugins {
 
@@ -106,7 +111,7 @@ pluginBundle {
       id = 'com.sarhanm.versioner'
       displayName = 'Gradle Project Version Set Plugin'
       description = 'Set the project version based on git metatdata and number of commits. Example: 1.0.81.master.efbb95a'
-      tags = ['versioner', 'version', 'git', 'scm', 'commits', 'auto version', 'auto']
+      tags = ['versioner', 'version', 'git', 'scm', 'commits', 'auto version', 'auto', 'gradle']
     }
 
     versionResolverPlugin {
