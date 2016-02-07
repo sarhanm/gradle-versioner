@@ -7,9 +7,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
         classpath 'com.sarhanm:gradle-versioner:2.1.11'
-        classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.3"
     }
 }
 
