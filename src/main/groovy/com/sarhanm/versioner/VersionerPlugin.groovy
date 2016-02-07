@@ -21,24 +21,10 @@ class VersionerPlugin implements Plugin<Project>{
         def params = project.extensions.getByType(VersionerOptions)
         def versioner = new Versioner(params, project)
 
-        if (!params.disabled) {
-            logger.info "Initial project $project.name version: $project.version"
-            project.version = versioner.getVersion()
-
-            //Trying to make this log line machine readable and findable in long/huge logs
-            logger.quiet "versioner:${project.name}=$project.version"
-        }
+        //Adding Versioner as the version delegate
+        project.version = versioner
 
         //Adding git data so it can be used in the build script
-        GitData data = project.extensions.create("gitdata", GitData)
-        data.major = versioner.getMajorNumber()
-        data.minor = versioner.getMinorNumber()
-        data.point = versioner.getPointNumber()
-        data.hotfix = versioner.getHotfixNumber()
-        data.branch = versioner.branch
-        data.commit = versioner.commitHash
-        data.totalCommits = Integer.parseInt(versioner.getTotalCommits())
+        project.extensions.create("gitdata", GitData, versioner)
     }
 }
-
-
