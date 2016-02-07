@@ -8,7 +8,8 @@ import java.util.regex.Pattern
  * Testing to make sure the plugin works in all supported versions of gradle
  * @author Mohammad Sarhan
  */
-class VersionerGradleVersionsTest extends IntegrationSpec {
+class VersionerGradleVersionsTest //extends IntegrationSpec
+{
 
     static DEFAULT_BUILD = '''
             apply plugin: 'java'
