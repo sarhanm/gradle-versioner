@@ -1,7 +1,3 @@
-import com.sarhanm.versioner.VersionerOptions
-
-// Apply versioner first so we set the version number correctly
-// in case another plugin doesn't wait until the project is evaluated before execution.
 buildscript {
     repositories {
         maven {
@@ -12,15 +8,9 @@ buildscript {
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
-        classpath 'com.sarhanm:gradle-versioner:2.0.17'
+        classpath 'com.sarhanm:gradle-versioner:2.1.11'
         classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
     }
-}
-
-project.extensions.create("versioner", VersionerOptions)
-versioner{
-    //Community Plugins are required to have a clean version string.
-    omitBranchMetadataOnSolidBranch=true
 }
 
 apply plugin: 'com.sarhanm.versioner'
@@ -30,6 +20,10 @@ apply plugin: 'eclipse'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
+versioner{
+    //Community Plugins are required to have a clean version string.
+    omitBranchMetadataOnSolidBranch=true
+}
 
 group = 'com.sarhanm'
 
@@ -42,12 +36,13 @@ dependencies {
     compile localGroovy()
     compile 'org.yaml:snakeyaml:1.14'
     compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
+    testCompile 'com.netflix.nebula:nebula-test:4.0.0'
 }
 
 apply plugin: 'com.jfrog.bintray'
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.4'
+    gradleVersion = '2.10'
 }
 
 task sourcesJar(type: Jar) {
