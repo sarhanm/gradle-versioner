@@ -111,14 +111,14 @@ pluginBundle {
       id = 'com.sarhanm.versioner'
       displayName = 'Gradle Project Version Set Plugin'
       description = 'Set the project version based on git metatdata and number of commits. Example: 1.0.81.master.efbb95a'
-      tags = ['versioner', 'version', 'git', 'scm', 'commits', 'auto version', 'auto', 'gradle']
+      //tags = ['versioner', 'version', 'git', 'scm', 'commits', 'auto version', 'auto', 'gradle']
     }
 
     versionResolverPlugin {
       id = 'com.sarhanm.version-resolver'
       displayName = 'Version Resolver: Resolve Dependencies From Global Manifest'
       description = 'Allows you to resolve versions for all dependencies from a global manifest rather than hard coding versions in each build.gradle file'
-      tags = ['versioner', 'version', 'resolve', 'yaml', 'manifest']
+      //tags = ['versioner', 'version', 'resolve', 'yaml', 'manifest']
     }
   }
 }
