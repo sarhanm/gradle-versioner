@@ -69,8 +69,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         when:
         def result = runTasksSuccessfully("build")
-        println result.standardOutput
-        println result.standardError
         def buildVersion = getVersionFromOutput(result.standardOutput)
         def version = new Version(buildVersion)
 
@@ -97,8 +95,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         when:
         def result = runTasksSuccessfully("build")
-        println result.standardOutput
-        println result.standardError
         def buildVersion = getVersionFromOutput(result.standardOutput)
         def version = new Version(buildVersion)
 
