@@ -56,7 +56,7 @@ class VersionerBuildTest extends IntegrationSpec {
         def gx = new GitExecutor(project)
         gx.execute('init .')
         gx.execute('add .')
-        gx.execute("commit -m'a commit' ")
+        gx.execute("commit -m'commit' ")
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
@@ -85,7 +85,7 @@ class VersionerBuildTest extends IntegrationSpec {
         def gx = new GitExecutor(project)
         gx.execute('init .')
         gx.execute('add .')
-        gx.execute("commit -m'a commit' ")
+        gx.execute("commit -m'commit'")
 
         gx.execute('checkout -b feature/a-feature')
         gx.execute('commit -m"adding commit in feature" --allow-empty')
@@ -119,7 +119,7 @@ class VersionerBuildTest extends IntegrationSpec {
         def gx = new GitExecutor(project)
         gx.execute('init .')
         gx.execute('add .')
-        gx.execute("commit -m'a commit' ")
+        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in 2" --allow-empty')
         gx.execute('commit -m"adding commit in 3" --allow-empty')
 
@@ -154,7 +154,7 @@ class VersionerBuildTest extends IntegrationSpec {
         def gx = new GitExecutor(project)
         gx.execute('init .')
         gx.execute('add .')
-        gx.execute("commit -m'a commit' ")
+        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in master" --allow-empty')
         gx.execute('checkout -b hotfix/some-hotfix')
         gx.execute('commit -m"adding file in hotfix" --allow-empty')
@@ -187,7 +187,7 @@ class VersionerBuildTest extends IntegrationSpec {
         def gx = new GitExecutor(project)
         gx.execute('init .')
         gx.execute('add .')
-        gx.execute("commit -m'a commit' ")
+        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in master" --allow-empty')
         gx.execute('checkout -b release/hotfix')
         gx.execute('commit -m"adding file in hotfix" --allow-empty')
@@ -220,7 +220,7 @@ class VersionerBuildTest extends IntegrationSpec {
         def gx = new GitExecutor(project)
         gx.execute('init .')
         gx.execute('add .')
-        gx.execute("commit -m'a commit' ")
+        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in master" --allow-empty')
         gx.execute('checkout -b hotfix/release')
         gx.execute('commit -m"adding file in hotfix" --allow-empty')
