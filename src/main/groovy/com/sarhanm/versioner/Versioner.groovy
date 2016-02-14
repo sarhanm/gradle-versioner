@@ -96,7 +96,6 @@ class Versioner
 
             def commitHash = executeGit("merge-base $branchName $options.commonHotfixBranch")
             def commitList = executeGit("log --oneline $commitHash")
-            println "Commit list: $commitList"
             def point = commitList ? commitList.split('\n').length : 0
             point += "." + getHotfixNumber()
             return point
