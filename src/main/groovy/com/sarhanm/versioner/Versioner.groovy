@@ -67,10 +67,14 @@ class Versioner
         computedVersion
     }
 
+    def plus( other )
+    {
+        return toString() + other.toString()
+    }
     /**
      * @return Hotfix version number as integer
      */
-    public int getHotfixNumber()
+    def int getHotfixNumber()
     {
         def branchName = getBranchNameRaw()
         def commitList = executeGit("log --oneline $branchName...$options.commonHotfixBranch")
@@ -82,7 +86,7 @@ class Versioner
      * @return Point version number as String.  May contain both point
      * and hotfix numbers for a hotfix branch (such as "5.2")
      */
-    public String getVersionPoint()
+    def String getVersionPoint()
     {
         if(isHotfix())
         {
@@ -120,7 +124,7 @@ class Versioner
     /**
      * @return Major and minor version numbers as String (such as "3.4")
      */
-    public String getMajorMinor()
+    def String getMajorMinor()
     {
         //We only want certain branches to have solid versions
         if(!useSolidMajorMinorVersion())
@@ -137,7 +141,7 @@ class Versioner
     /**
      * @return Major version number as integer
      */
-    public int getMajorNumber()
+    def int getMajorNumber()
     {
         def majorMinorSplit = getMajorMinor().split('\\.')
         return Integer.parseInt( majorMinorSplit[0] )
@@ -146,7 +150,7 @@ class Versioner
     /**
      * @return Minor version number as integer
      */
-    public int getMinorNumber()
+    def int getMinorNumber()
     {
         def majorMinorSplit = getMajorMinor().split('\\.')
         return Integer.parseInt( majorMinorSplit[1] )
@@ -155,7 +159,7 @@ class Versioner
     /**
      * @return Point version number as integer
      */
-    public int getPointNumber()
+    def int getPointNumber()
     {
         def pointSplit = getVersionPoint().split('\\.')
         return Integer.parseInt( pointSplit[0] )
