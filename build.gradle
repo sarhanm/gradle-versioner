@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
-        classpath 'com.sarhanm:gradle-versioner:2.1.15'
+        classpath 'com.sarhanm:gradle-versioner:2.1.20'
 
         //Leave at version 0.9.1 for now. Looks like the latest version
         //has dependency issues that prevents a successful publish
