@@ -157,6 +157,35 @@ class VersionerTest {
     }
 
     @Test
+    void testReleaseHotfixVersion()
+    {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(6) { params ->
+            if (params == Versioner.CMD_BRANCH) "release/hotfix"
+            else if (params.startsWith("log --oneline release/hotfix")) "one\ntwo\nthree\nfour"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
+            else if (params == Versioner.CMD_POINT) "4"
+            else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
+            else if (params.startsWith("merge-base")) "commit-hash-return"
+            else if (params == "log --oneline commit-hash-return") "one\ntwo\nthree"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            assertEquals "2.3.3.4.release-hotfix.adbcdf", versioner.getVersion()
+            assertEquals 4, versioner.getHotfixNumber()
+        }
+    }
+
+
+    @Test
     void testHotfixBranchWithHotfixDisabledVersion()
     {
         def envMock = new MockFor(EnvReader.class)

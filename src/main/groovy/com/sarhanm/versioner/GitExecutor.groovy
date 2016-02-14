@@ -1,5 +1,6 @@
 package com.sarhanm.versioner
 
+import org.apache.tools.ant.types.Commandline
 import org.gradle.api.Project
 
 /**
@@ -8,6 +9,7 @@ import org.gradle.api.Project
  */
 class GitExecutor
 {
+
     def Project project
     GitExecutor(def Project project) {
         this.project = project
@@ -22,11 +24,15 @@ class GitExecutor
     {
         def cmd = "git " + cmdArgs
 
+        //Deal with parameters that have spaces but are quoted
+        // as well as other edge cases
+        def commandArray = Commandline.translateCommandline(cmd)
+
         new ByteArrayOutputStream().withStream { output ->
             new ByteArrayOutputStream().withStream { error ->
 
                 def result = project.exec {
-                    commandLine = cmd.split(' ') as List
+                    commandLine = commandArray
                     workingDir = project.projectDir
                     ignoreExitValue = true
                     standardOutput = output
@@ -34,7 +40,10 @@ class GitExecutor
                 }
 
                 if ( result.exitValue == 0 )
-                    return output.toString()
+                    return output.toString().trim()
+                else{
+                    project.logger.debug "ERROR Executing git $cmdArgs: $error"
+                }
 
                 return null
             }

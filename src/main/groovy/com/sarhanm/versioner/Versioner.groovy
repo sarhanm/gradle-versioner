@@ -11,7 +11,7 @@ import groovy.transform.Memoized
 class Versioner
 {
     static final DEFAULT_SOLID_BRANCH_REGEX = "master|.*release.*|.*hotfix.*"
-    static final DEFAULT_HOTFIX_COMMON_BRANCH = "origin/master"
+    static final DEFAULT_HOTFIX_COMMON_BRANCH = "master"
 
     //Git commands also used in unit tests
     static final CMD_BRANCH = "rev-parse --abbrev-ref HEAD"
@@ -94,9 +94,9 @@ class Versioner
             //but the number of commits from when we split off.
             def branchName = getBranchNameRaw();
 
-            def commit_hash = executeGit("merge-base $branchName $options.commonHotfixBranch")
-            def commitList = executeGit("log --oneline $commit_hash")
-
+            def commitHash = executeGit("merge-base $branchName $options.commonHotfixBranch")
+            def commitList = executeGit("log --oneline $commitHash")
+            println "Commit list: $commitList"
             def point = commitList ? commitList.split('\n').length : 0
             point += "." + getHotfixNumber()
             return point
