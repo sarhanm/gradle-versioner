@@ -193,12 +193,14 @@ class Versioner
     @Memoized
     def String getBranchNameRaw()
     {
-        //Either from jenkins or travis
-        def name = envReader.getBranchNameFromEnv(options.branchEnvName)
 
-        //Dev box. Execute the actual git cmd
-        if(!name)
-            name = executeGit(CMD_BRANCH)
+        //Try from git repo first, then fall back on env names
+        // This is important so tests execute successfully.
+        def name = executeGit(CMD_BRANCH)
+
+        //Fallback to either from jenkins or travis
+        if(!name || name == 'HEAD')
+            name = envReader.getBranchNameFromEnv(options.branchEnvName)
 
         if(!name)
             return "unknown"
