@@ -16,6 +16,16 @@ class VersionerBuildTest extends IntegrationSpec {
             apply plugin: 'com.sarhanm.versioner'
         '''.stripIndent()
 
+    static DEFAULT_GIT_DRIVEN_BUILD ='''
+        import com.sarhanm.versioner.GitExecutor
+        def gx = new GitExecutor(project)
+        gx.execute('init .')
+        gx.execute('add .')
+        gx.execute('config user.email "test@test.com"')
+        gx.execute('config user.name "tester"')
+        gx.execute('commit -m"commit" ')
+        '''.stripIndent()
+
     def 'test build without options'(){
         buildFile << DEFAULT_BUILD
         when:
@@ -50,13 +60,7 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test versioned build'() {
-        buildFile << '''
-
-        import com.sarhanm.versioner.GitExecutor
-        def gx = new GitExecutor(project)
-        gx.execute('init .')
-        gx.execute('add .')
-        gx.execute("commit -m'commit' ")
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
@@ -79,13 +83,7 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test feature branch build'(){
-        buildFile << '''
-
-        import com.sarhanm.versioner.GitExecutor
-        def gx = new GitExecutor(project)
-        gx.execute('init .')
-        gx.execute('add .')
-        gx.execute("commit -m'commit'")
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
 
         gx.execute('checkout -b feature/a-feature')
         gx.execute('commit -m"adding commit in feature" --allow-empty')
@@ -113,13 +111,8 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test tagged build'(){
-        buildFile << '''
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
 
-        import com.sarhanm.versioner.GitExecutor
-        def gx = new GitExecutor(project)
-        gx.execute('init .')
-        gx.execute('add .')
-        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in 2" --allow-empty')
         gx.execute('commit -m"adding commit in 3" --allow-empty')
 
@@ -148,13 +141,8 @@ class VersionerBuildTest extends IntegrationSpec {
 
 
     def 'test hotfix build'() {
-        buildFile << '''
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
 
-        import com.sarhanm.versioner.GitExecutor
-        def gx = new GitExecutor(project)
-        gx.execute('init .')
-        gx.execute('add .')
-        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in master" --allow-empty')
         gx.execute('checkout -b hotfix/some-hotfix')
         gx.execute('commit -m"adding file in hotfix" --allow-empty')
@@ -181,13 +169,8 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test release/hotfix build'() {
-        buildFile << '''
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
 
-        import com.sarhanm.versioner.GitExecutor
-        def gx = new GitExecutor(project)
-        gx.execute('init .')
-        gx.execute('add .')
-        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in master" --allow-empty')
         gx.execute('checkout -b release/hotfix')
         gx.execute('commit -m"adding file in hotfix" --allow-empty')
@@ -214,13 +197,8 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test hotfix/release build'() {
-        buildFile << '''
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
 
-        import com.sarhanm.versioner.GitExecutor
-        def gx = new GitExecutor(project)
-        gx.execute('init .')
-        gx.execute('add .')
-        gx.execute("commit -m'commit' ")
         gx.execute('commit -m"adding commit in master" --allow-empty')
         gx.execute('checkout -b hotfix/release')
         gx.execute('commit -m"adding file in hotfix" --allow-empty')

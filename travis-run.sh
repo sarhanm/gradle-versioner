@@ -2,7 +2,7 @@
 
 # Only publish the master branch that are NOT pull requests.
 if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-    ./gradlew check bintrayUpload publishPlugins --debug --stacktrace
+    ./gradlew check bintrayUpload publishPlugins --info --stacktrace
 else
-    ./gradlew check --debug --stacktrace
+    ./gradlew check --info --stacktrace
 fi
