@@ -60,11 +60,13 @@ class VersionerBuildTest extends IntegrationSpec {
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
-
+        println project.version
         '''.stripIndent()
 
         when:
         def result = runTasksSuccessfully("build")
+        result.standardOutput
+        result.standardError
         def buildVersion = getVersionFromOutput(result.standardOutput)
         def version = new Version(buildVersion)
 
@@ -174,6 +176,72 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.point == '2'
         assert version.hotfix == '2'
         assert version.branch == 'hotfix-some-hotfix'
+    }
+
+    def 'test release/hotfix build'() {
+        buildFile << '''
+
+        import com.sarhanm.versioner.GitExecutor
+        def gx = new GitExecutor(project)
+        gx.execute('init .')
+        gx.execute('add .')
+        gx.execute("commit -m'a commit' ")
+        gx.execute('commit -m"adding commit in master" --allow-empty')
+        gx.execute('checkout -b release/hotfix')
+        gx.execute('commit -m"adding file in hotfix" --allow-empty')
+        gx.execute('commit -m"adding file in hotfix" --allow-empty')
+
+
+        apply plugin: 'java'
+        apply plugin: 'com.sarhanm.versioner'
+
+        '''.stripIndent()
+
+        when:
+        def result = runTasksSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def version = new Version(buildVersion)
+
+        then:
+        version.valid
+        assert version.major == '1'
+        assert version.minor == '0'
+        assert version.point == '2'
+        assert version.hotfix == '2'
+        assert version.branch == 'release-hotfix'
+    }
+
+    def 'test hotfix/release build'() {
+        buildFile << '''
+
+        import com.sarhanm.versioner.GitExecutor
+        def gx = new GitExecutor(project)
+        gx.execute('init .')
+        gx.execute('add .')
+        gx.execute("commit -m'a commit' ")
+        gx.execute('commit -m"adding commit in master" --allow-empty')
+        gx.execute('checkout -b hotfix/release')
+        gx.execute('commit -m"adding file in hotfix" --allow-empty')
+        gx.execute('commit -m"adding file in hotfix" --allow-empty')
+
+
+        apply plugin: 'java'
+        apply plugin: 'com.sarhanm.versioner'
+
+        '''.stripIndent()
+
+        when:
+        def result = runTasksSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def version = new Version(buildVersion)
+
+        then:
+        version.valid
+        assert version.major == '1'
+        assert version.minor == '0'
+        assert version.point == '2'
+        assert version.hotfix == '2'
+        assert version.branch == 'hotfix-release'
     }
 
     private String getVersionFromOutput(String output)
