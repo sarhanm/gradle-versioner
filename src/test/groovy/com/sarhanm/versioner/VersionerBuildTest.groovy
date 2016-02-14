@@ -65,8 +65,8 @@ class VersionerBuildTest extends IntegrationSpec {
 
         when:
         def result = runTasksSuccessfully("build")
-        result.standardOutput
-        result.standardError
+        println result.standardOutput
+        println result.standardError
         def buildVersion = getVersionFromOutput(result.standardOutput)
         def version = new Version(buildVersion)
 
