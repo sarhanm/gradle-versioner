@@ -21,8 +21,7 @@ class VersionerPlugin implements Plugin<Project>{
         def params = project.extensions.getByType(VersionerOptions)
         def versioner = new Versioner(params, project)
 
-        //Adding Versioner as the version delegate
-        project.version = versioner
+        project.version = "${->versioner.toString()}"
 
         //Adding git data so it can be used in the build script
         project.extensions.create("gitdata", GitData, versioner)

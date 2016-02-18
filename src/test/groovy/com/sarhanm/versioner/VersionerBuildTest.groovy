@@ -41,7 +41,9 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test build with ommit branch metadata option'() {
-        buildFile << DEFAULT_BUILD + '''
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
+        apply plugin: 'java'
+        apply plugin: 'com.sarhanm.versioner'
         versioner{
             omitBranchMetadata=true
         }
@@ -49,6 +51,7 @@ class VersionerBuildTest extends IntegrationSpec {
 
         when:
         def result = runTasksSuccessfully("build")
+        println result.standardOutput
         def buildVersion = getVersionFromOutput(result.standardOutput)
         def version = new Version(buildVersion)
 
@@ -64,7 +67,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
-        println project.version
         '''.stripIndent()
 
         when:
@@ -90,7 +92,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
-        println project.version
         '''.stripIndent()
 
         when:
@@ -119,7 +120,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
-        println project.version
         '''.stripIndent()
 
         when:
@@ -147,7 +147,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
-        println project.version
         '''.stripIndent()
 
         when:
@@ -175,7 +174,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
-        println project.version
         '''.stripIndent()
 
         when:
@@ -203,7 +201,6 @@ class VersionerBuildTest extends IntegrationSpec {
 
         apply plugin: 'java'
         apply plugin: 'com.sarhanm.versioner'
-        println project.version
         '''.stripIndent()
 
         when:
@@ -219,6 +216,37 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.hotfix == '2'
         assert version.branch == 'hotfix-release'
     }
+
+    def 'test with production plugin'() {
+        buildFile << DEFAULT_GIT_DRIVEN_BUILD + """
+
+        apply plugin: 'java'
+        apply plugin: 'com.sarhanm.versioner'
+        apply plugin: 'maven-publish'
+        publishing{
+            publications {
+                mavenIosApp(MavenPublication) {
+                    from project.components.java
+                    version project.version
+                }
+            }
+        }
+        """.stripIndent()
+
+        when:
+        def result = runTasksSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def version = new Version(buildVersion)
+
+        then:
+        version.valid
+        assert version.major == '1'
+        assert version.minor == '0'
+        assert version.point == '1'
+        assert version.branch == 'master'
+
+    }
+
 
     private String getVersionFromOutput(String output)
     {

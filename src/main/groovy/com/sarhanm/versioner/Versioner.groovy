@@ -30,23 +30,20 @@ class Versioner
 
     public Versioner()
     {
-        this.gitExecutor = new GitExecutor()
-        this.envReader = new EnvReader()
-        this.options = new VersionerOptions()
-        // for unit testing we mock these two
-        this.projectName = "testProject"
-        this.initialVersion = "1.0"
-        this.logger = null
+        this(new VersionerOptions(), null)
     }
 
-    public Versioner(versionerOptions, Project project)
+    public Versioner(VersionerOptions versionerOptions, Project project)
     {
         this.gitExecutor = new GitExecutor(project)
         this.envReader = new EnvReader()
         this.options = versionerOptions
-        this.projectName = project.name
-        this.initialVersion = project.version
-        this.logger = project.logger
+
+        this.logger = project?.logger
+
+        // for unit testing we mock these two
+        this.projectName = project ? project.name : 'testProject'
+        this.initialVersion = project ? project.version : "1.0"
     }
 
     @Memoized
