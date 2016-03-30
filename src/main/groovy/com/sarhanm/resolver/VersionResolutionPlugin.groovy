@@ -3,6 +3,7 @@ package com.sarhanm.resolver
 import com.sarhanm.versioner.VersionerOptions
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 /**
  *
@@ -33,11 +34,9 @@ class VersionResolutionPlugin implements Plugin<Project>{
 
             def resolver = new VersionResolver(project,params, file)
             project.configurations.all {
-
-                // We've already resolved the versionManifest,
-                // and modifying a resolved configuration will fail the build starting
-                // in gradle 3+
-                if(it.name != versionManifest.name)
+                // Avoid modifying already resolved configurations.
+                // This will fail the build in Gradle v3+.
+                if (state == Configuration.State.UNRESOLVED)
                     resolutionStrategy.eachDependency(resolver)
             }
 
