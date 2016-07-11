@@ -28,7 +28,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     def logger = Logging.getLogger(VersionResolver)
 
     private Project project
-    private VersionResolverOptions options
+    private VersionManifestOption options
     private List<ResolutionAwareRepository> repositories = null
     private File manifestFile
     private usedVersions
@@ -36,11 +36,11 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     private siblingProject = new HashSet();
     private Map<String,String> explicitVersion = [:]
 
-    VersionResolver(Project project,VersionResolverOptions options = null, File manifestFile = null) {
+    VersionResolver(Project project,VersionManifestOption manifestOptions = null, File manifestFile = null) {
         this.project = project
         this.repositories = null;
         this.manifestFile = manifestFile
-        this.options = options
+        this.options = manifestOptions
 
         this.usedVersions = [:]
         this.computedManifest = ['modules': usedVersions ]
@@ -49,10 +49,11 @@ class VersionResolver implements Action<DependencyResolveDetails>{
 
 
         project?.configurations?.all { Configuration c ->
-            c.dependencies.each {Dependency d ->
+            c.dependencies.all { Dependency d ->
                 if(d.version != 'auto') {
                     String key = "${d.group}:${d.name}"
                     explicitVersion[key] = d.version
+                    logger.debug "Adding {} to explicit versions", key
                 }
             }
         }
@@ -190,7 +191,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     private String getVersionFromManifest(group, name){
         def manifest = getManifest()
         if(manifest == null)
-            throw new RuntimeException("Could not resolve manifest location ($manifestFile , $options.manifest.url)")
+            throw new RuntimeException("Could not resolve manifest location ($manifestFile , $options.url)")
         def key = "${group}:${name}"
 
         manifest.modules[key] ?: null
@@ -210,23 +211,45 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         return explicitVersion.get("$group:$name" as String)
     }
 
+    /**
+     * Defer resolving the configuration until as late as we can.
+     * @return
+     */
+    @Memoized
+    @Synchronized
+    private File resolveManifestConfiguration() {
+
+        if(manifestFile == null) {
+            def versionManifest = project?.configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
+
+            def resolved = versionManifest?.resolve()
+            if (resolved && !resolved.empty) {
+                manifestFile = resolved.first()
+            }
+        }
+        manifestFile
+    }
+
+    @Synchronized
     @Memoized
     private getManifest()
     {
+        if(manifestFile == null)
+            resolveManifestConfiguration()
 
-        def location = manifestFile?.toURI()?.toString() ?: options.manifest.url
+        def location = manifestFile?.toURI()?.toString() ?: options.url
         def text = null
 
         if(  location.startsWith("http")) {
 
             def builder = new HTTPBuilder(location)
 
-            if(options.manifest.username != null)
+            if(options.username != null)
             {
-                builder.auth.basic options.manifest.username, options.manifest.password
+                builder.auth.basic options.username, options.password
             }
 
-            if(options.manifest.ignoreSSL)
+            if(options.ignoreSSL)
                 builder.ignoreSSLIssues()
 
             builder.request(Method.GET) { rep ->

@@ -122,10 +122,8 @@ class VersionResolveViaManifestTest {
 
     }
 
-    private VersionResolverOptions getOption(def url, def username = null, def password = null)
+    private VersionManifestOption getOption(def url, def username = null, def password = null)
     {
-        def options = new VersionResolverOptions()
-        options.manifest = [ url: url, username: username, password: password] as VersionManifestOption
-        options
+        [ url: url, username: username, password: password] as VersionManifestOption
     }
 }
