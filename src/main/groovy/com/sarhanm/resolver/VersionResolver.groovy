@@ -6,6 +6,8 @@ import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
@@ -15,8 +17,6 @@ import org.gradle.internal.component.model.DefaultDependencyMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.util.CollectionUtils
-
-//import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentVersionSelectionResolveResult
 import org.yaml.snakeyaml.Yaml
 
 /**
@@ -34,6 +34,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     private usedVersions
     private computedManifest
     private siblingProject = new HashSet();
+    private Map<String,String> explicitVersion = [:]
 
     VersionResolver(Project project,VersionResolverOptions options = null, File manifestFile = null) {
         this.project = project
@@ -45,6 +46,16 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         this.computedManifest = ['modules': usedVersions ]
 
         project?.getParent()?.subprojects?.each { siblingProject.add("${it.group}:${it.name}"); }
+
+
+        project?.configurations?.all { Configuration c ->
+            c.dependencies.each {Dependency d ->
+                if(d.version != 'auto') {
+                    String key = "${d.group}:${d.name}"
+                    explicitVersion[key] = d.version
+                }
+            }
+        }
 
     }
 
@@ -78,6 +89,7 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         {
             details.useVersion requestedVersion
             usedVersions["${details.requested.group}:${details.requested.name}"] = requestedVersion
+            logger.debug("Resolved version of ${details.requested.group}:${details.requested.name} to $requestedVersion")
         }
 
     }
@@ -141,49 +153,62 @@ class VersionResolver implements Action<DependencyResolveDetails>{
         def requested = details.requested
         def ver = requested.version
         def group = requested.group
-        def rname = requested.name
-        def isExplicit = isExplicitlyVersioned(group,rname)
+        def name = requested.name
 
         // Siblings are always versioned together.
-        if(siblingProject.contains("${group}:${rname}"))
+        if(siblingProject.contains("${group}:${name}"))
             return ver
 
+        //it actually doesn't matter if the version is 'auto' or otherwise
+        // as long as its a version found in our version manifest
+        //we always pin the version based on two rules in the following order:
+        // 1. if pinned in the build.gradle, then that version wins
+        // 2. if pinned in the version manifest, then that version wins.
 
-        //We don't want to set versions for dependencies explicitly set in this project.
-        if(ver != 'auto' && isExplicit)
-            return ver
-
-        if( manifestFile || options && options.manifest && options.manifest.url)
-        {
-            def manifest = getManifest()
-            if(manifest == null)
-                throw new RuntimeException("Could not resolve manifest location $options.manifest.url")
-            def name = "${group}:${rname}"
-            ver =   manifest.modules[name] ?: ver
-            logger.debug("Resolved version of $name to $ver")
-        }
-
-        ver
-    }
-
-    @Memoized
-    private boolean isExplicitlyVersioned(String group, String name)
-    {
-        def explicit = false
-        project?.configurations?.all{
-
-            dependencies.each{
-                if(it.name == name && it.group == group)
-                {
-                    explicit = true
-                    return explicit
-                }
+        //Only do our logic of overriding pins if we are defining them in the version manifest
+        //otherwise we should depend on gradle to resolve multiple versions for the same dependency.
+        if(isVersionInManifest(group, name)) {
+            if (isExplicitlyVersioned(group, name)) {
+                //use the version in the build.gradle
+                return getExplicitVersionFromProject(group, name)
+            } else{
+                //resolve via the manifest. We don't care that auto is being used or not,
+                //we always resolve to what is in the manifest
+                return getVersionFromManifest(group, name)
             }
         }
 
-        return explicit
+        if(ver == "auto")
+            throw new IllegalStateException("[com.sarhanm.vesion-resolver]$group:$name:$ver is " +
+                    "marked for resolution but no version is defined in version manifest")
+
+        //return the default version if not resolved by above
+        return ver
     }
 
+    @Memoized
+    private String getVersionFromManifest(group, name){
+        def manifest = getManifest()
+        if(manifest == null)
+            throw new RuntimeException("Could not resolve manifest location ($manifestFile , $options.manifest.url)")
+        def key = "${group}:${name}"
+
+        manifest.modules[key] ?: null
+    }
+
+    @Memoized
+    private boolean isVersionInManifest(group, name){
+        return getVersionFromManifest(group, name) != null
+    }
+
+    private boolean isExplicitlyVersioned(String group, String name)
+    {
+        return getExplicitVersionFromProject(group, name) != null
+    }
+
+    private String getExplicitVersionFromProject(String group, String name) {
+        return explicitVersion.get("$group:$name" as String)
+    }
 
     @Memoized
     private getManifest()

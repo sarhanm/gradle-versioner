@@ -5,6 +5,8 @@ import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.junit.Test
 
+import static org.junit.Assert.fail
+
 /**
  *
  * @author mohammad sarhan
@@ -52,23 +54,28 @@ class VersionResolveViaManifestTest {
     }
 
     @Test
-    void testManifestVersionMissing()
-    {
+    void testManifestVersionMissing() {
         def file = new File("src/test/resources/versions.yaml")
 
         def options = getOption(file.toURI().toString())
 
         def selectorMock = new MockFor(ModuleVersionSelector)
-        selectorMock.demand.getVersion{ params-> 'auto'}
-        selectorMock.demand.getGroup{ params-> 'com.coinfling'}
-        selectorMock.demand.getName{ params-> 'not-there'}
+        selectorMock.demand.getVersion { params -> 'auto' }
+        selectorMock.demand.getGroup { params -> 'com.coinfling' }
+        selectorMock.demand.getName { params -> 'not-there' }
 
         def detailsMock = new MockFor(DependencyResolveDetails)
-        detailsMock.demand.getRequested{params-> selectorMock.proxyInstance()}
+        detailsMock.demand.getRequested { params -> selectorMock.proxyInstance() }
 
         def resolver = new VersionResolver(null, options)
-        def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
-        assert ver == "auto"
+        try {
+            def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
+        } catch (IllegalStateException ex){
+            //ignore. expected
+            return
+        }
+
+        fail("Expected an exception to be thrown")
     }
 
     @Test
