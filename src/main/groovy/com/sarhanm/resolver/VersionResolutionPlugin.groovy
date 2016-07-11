@@ -1,6 +1,5 @@
 package com.sarhanm.resolver
 
-import com.sarhanm.versioner.VersionerOptions
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -12,46 +11,31 @@ import org.gradle.api.artifacts.Configuration
 class VersionResolutionPlugin implements Plugin<Project>{
 
     public static final String VERSION_RESOLVER = "versionResolver"
+    private static final String VERSION_MANIFEST_EXT = "versionManifest"
+
+    private static final String VERSION_MANIFEST_CONFIGURATION = "versionManifest"
 
     @Override
     void apply(Project project) {
-        project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
-        project."$VERSION_RESOLVER".extensions.create("versionManifest", VersionManifestOption)
+        def versionResolverOpt = project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
+        def versionManifestOpt = versionResolverOpt.extensions.create(VERSION_MANIFEST_EXT, VersionManifestOption)
 
-        def versionManifest = project.configurations.maybeCreate('versionManifest')
+        project.configurations.maybeCreate(VERSION_MANIFEST_CONFIGURATION)
 
-        project.afterEvaluate {
-            def params = project."$VERSION_RESOLVER"
-            params.manifest = params.versionManifest
+        def resolver = new VersionResolver(project,versionManifestOpt)
 
-            def resolved = versionManifest.resolve()
+        //add our resolver to existing configuration and any new configuration added
+        // in the future.
+        project.configurations.all { Configuration c ->
+            c.resolutionStrategy.eachDependency(resolver)
+        }
 
-            def file = null
 
-            if( resolved && !resolved.empty){
-                file = resolved.first()
-            }
-
-            def resolver = new VersionResolver(project,params, file)
-            project.configurations.all {
-                // Avoid modifying already resolved configurations.
-                // This will fail the build in Gradle v3+.
-                if (state == Configuration.State.UNRESOLVED)
-                    resolutionStrategy.eachDependency(resolver)
-            }
-
-            //Output the computed version manifest
-            if(params.outputComputedManifest)
-            {
-                def task = project.tasks.create(name: 'outputVersionManifest',
-                        description: 'Outputs the version manifest of all the resolved versions.',
-                        type: VersionManifestOutputTask) {
-                    outputFile  = project.file("$project.buildDir/version-manifest.yaml")
-                    versionResolver = resolver
-                }
-
-                project.tasks.build.dependsOn task
-            }
+        project.tasks.create(name: 'outputVersionManifest',
+                description: 'Outputs the version manifest of all the resolved versions.',
+                type: VersionManifestOutputTask) { VersionManifestOutputTask t ->
+            t.outputFile  = project.file("$project.buildDir/version-manifest.yaml")
+            t.versionResolver = resolver
         }
     }
 }
