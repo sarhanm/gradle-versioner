@@ -27,7 +27,12 @@ class VersionResolutionPlugin implements Plugin<Project>{
         //add our resolver to existing configuration and any new configuration added
         // in the future.
         project.configurations.all { Configuration c ->
-            c.resolutionStrategy.eachDependency(resolver)
+
+            //We don't want to participate in the versionManifest configuration
+            // resolution. otherwise we'll get a recursive execution
+            // since that configuration is used (and resolved) in VersionResolver.
+            if(c.name != VERSION_MANIFEST_CONFIGURATION)
+                c.resolutionStrategy.eachDependency(resolver)
         }
 
 

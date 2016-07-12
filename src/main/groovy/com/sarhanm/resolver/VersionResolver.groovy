@@ -175,7 +175,10 @@ class VersionResolver implements Action<DependencyResolveDetails>{
             } else{
                 //resolve via the manifest. We don't care that auto is being used or not,
                 //we always resolve to what is in the manifest
-                return getVersionFromManifest(group, name)
+                ver = getVersionFromManifest(group, name)
+                if(!ver)
+                    throw new RuntimeException("Could not resolve manifest location ($manifestFile , $options.url)")
+
             }
         }
 
@@ -190,11 +193,12 @@ class VersionResolver implements Action<DependencyResolveDetails>{
     @Memoized
     private String getVersionFromManifest(group, name){
         def manifest = getManifest()
-        if(manifest == null)
-            throw new RuntimeException("Could not resolve manifest location ($manifestFile , $options.url)")
         def key = "${group}:${name}"
 
-        manifest.modules[key] ?: null
+        if(!manifest)
+            return null
+
+        return manifest.modules[key] ?: null
     }
 
     @Memoized
@@ -238,8 +242,13 @@ class VersionResolver implements Action<DependencyResolveDetails>{
             resolveManifestConfiguration()
 
         def location = manifestFile?.toURI()?.toString() ?: options.url
-        def text = null
 
+        //It is possible to use the plugin without providing a manifest.
+        // For example, if you just wanted to use version ranges.
+        if(!location)
+            return null
+
+        def text = null
         if(  location.startsWith("http")) {
 
             def builder = new HTTPBuilder(location)

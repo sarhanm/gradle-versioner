@@ -20,6 +20,11 @@ class VersionResolverBuildTest extends IntegrationSpec {
         mavenCentral()
     }
 
+
+    '''.stripIndent()
+
+    static DEFAULT_MANIFEST = '''
+
     versionResolver{
         versionManifest{
             url = "file://" + file('build/versions.yaml')
@@ -35,7 +40,7 @@ class VersionResolverBuildTest extends IntegrationSpec {
     }
 
     def 'test version resolution'() {
-        buildFile << DEFAULT_BUILD + """
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
         dependencies{
             compile 'commons-configuration:commons-configuration:auto'
         }
@@ -58,7 +63,7 @@ class VersionResolverBuildTest extends IntegrationSpec {
     }
 
     def 'resolve release platform override of transitive dependency'(){
-        buildFile << DEFAULT_BUILD + """
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
         dependencies{
             compile 'commons-configuration:commons-configuration:auto'
         }
@@ -83,7 +88,7 @@ class VersionResolverBuildTest extends IntegrationSpec {
     }
 
     def 'resolve hard pinned version in build file'() {
-        buildFile << DEFAULT_BUILD + """
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
 
         dependencies{
             compile 'commons-configuration:commons-configuration:auto'
@@ -109,7 +114,7 @@ class VersionResolverBuildTest extends IntegrationSpec {
     }
 
     def 'hard pinned version in build with def in version manifest with transitive dep'() {
-        buildFile << DEFAULT_BUILD + """
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
         dependencies{
             compile 'commons-configuration:commons-configuration:auto'
             compile 'commons-lang:commons-lang:2.0'
@@ -133,7 +138,7 @@ class VersionResolverBuildTest extends IntegrationSpec {
     }
 
     def 'resolve hard pinned version in build with auto transitive'() {
-        buildFile << DEFAULT_BUILD + """
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
         dependencies{
             compile 'commons-configuration:commons-configuration:1.9'
         }
@@ -154,6 +159,47 @@ class VersionResolverBuildTest extends IntegrationSpec {
         result.output.contains "commons-configuration:commons-configuration:1.9\n"
 
     }
+
+    def 'resolve using gradles dynamic version'() {
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
+        dependencies{
+            compile 'commons-configuration:commons-configuration:+'
+        }
+        """.stripIndent()
+
+        addJavaFile()
+
+        versionsFile.text = """
+        modules:
+          'commons-lang:commons-lang': '2.5'
+        """.stripIndent()
+
+        when:
+        def result = runSuccessfully('dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
+
+        then:
+        // Allowing pinned version in build.gradle to override manifest.
+        result.output ==~ /(?ms).*commons-configuration:commons-configuration:\+ -> [^\s]*\n.*/
+
+    }
+
+    def 'resolve without manifest'() {
+        buildFile << DEFAULT_BUILD + """
+        dependencies{
+            compile 'commons-configuration:commons-configuration:1.9'
+        }
+        """.stripIndent()
+
+        addJavaFile()
+
+        when:
+        def result = runSuccessfully('dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
+
+        then:
+        result.output.contains "commons-configuration:commons-configuration:1.9\n"
+
+    }
+
 
     def addJavaFile() {
         //Need a java file to actually make compile go and resolution fail when we have an issue
