@@ -7,6 +7,15 @@ package com.sarhanm.resolver
 class VersionResolverOptions {
 
     def boolean outputComputedManifest = false
+
+    /**
+     * If true (default) it will include solid versions in the generated pom file.
+     *
+     * By default, gradle will use whatever version is specified by the user (in our case, the word "auto")
+     * when generating the pom. This option will  always use the resolved version of the module in the pom file.
+     *
+     */
+    def boolean resolveGeneratedPomVersions = true
 }
 
 class VersionManifestOption

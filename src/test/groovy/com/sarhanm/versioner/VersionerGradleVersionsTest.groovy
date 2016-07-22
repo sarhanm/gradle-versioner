@@ -1,36 +1,34 @@
 package com.sarhanm.versioner
 
-import nebula.test.IntegrationSpec
-
-import java.util.regex.Pattern
+import com.sarhanm.IntegrationSpec
 
 /**
  * Testing to make sure the plugin works in all supported versions of gradle
  * @author Mohammad Sarhan
  */
 //This test fails on travis ci. not sure why yet.....
-class VersionerGradleVersionsTest //extends IntegrationSpec
+class VersionerGradleVersionsTest extends IntegrationSpec
 {
 
     static DEFAULT_BUILD = '''
-            apply plugin: 'java'
-            apply plugin: 'com.sarhanm.versioner'
+        plugins{
+          id 'com.sarhanm.versioner'
+        }
+        apply plugin: 'java'
         '''.stripIndent()
 
-    void setup() {
-        //reset the gradle version every time.
-        gradleVersion = null
-    }
+    def gradleVersion
 
     def 'verifying plugin with version 2.8'() {
         buildFile << DEFAULT_BUILD
         gradleVersion = '2.8'
 
         when:
-        def result = runTasks("build")
+        def runner = getRunner(true, "build").withGradleVersion(gradleVersion)
+        def result = runner.build()
 
         then:
-        result.success
+        result
     }
 
     def 'verify plugin with version 2.9'(){
@@ -38,10 +36,11 @@ class VersionerGradleVersionsTest //extends IntegrationSpec
         gradleVersion = '2.9'
 
         when:
-        def result = runTasks("build")
+        def runner = getRunner(true, "build").withGradleVersion(gradleVersion)
+        def result = runner.build()
 
         then:
-        result.success
+        result
     }
 
     def 'verify plugin with version 2.10'(){
@@ -49,10 +48,11 @@ class VersionerGradleVersionsTest //extends IntegrationSpec
         gradleVersion = '2.10'
 
         when:
-        def result = runTasks("build")
+        def runner = getRunner(true, "build").withGradleVersion(gradleVersion)
+        def result = runner.build()
 
         then:
-        result.success
+        result
     }
 
 }

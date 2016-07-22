@@ -1,7 +1,8 @@
 package com.sarhanm.versioner
 
+import com.sarhanm.IntegrationSpec
 import com.sarhanm.resolver.Version
-import nebula.test.IntegrationSpec
+import org.apache.tools.ant.types.Commandline
 
 /**
  * Verify versioner options get picked up.
@@ -12,25 +13,26 @@ class VersionerBuildTest extends IntegrationSpec {
     static VERSIONER_PATTERN = ~/versioner:[^=]+=(.*)/
 
     static DEFAULT_BUILD = '''
+            plugins{
+                id 'com.sarhanm.versioner'
+            }
             apply plugin: 'java'
-            apply plugin: 'com.sarhanm.versioner'
         '''.stripIndent()
 
-    static DEFAULT_GIT_DRIVEN_BUILD ='''
-        import com.sarhanm.versioner.GitExecutor
-        def gx = new GitExecutor(project)
-        gx.execute('init .')
-        gx.execute('add .')
-        gx.execute('config user.email "test@test.com"')
-        gx.execute('config user.name "tester"')
-        gx.execute('commit -m"commit" ')
-        '''.stripIndent()
+    def setupGitRepo(){
+        execute('git init .')
+        execute('git add .')
+        execute('git config user.email "test@test.com"')
+        execute('git config user.name "tester"')
+        execute('git commit -m"commit" ')
+    }
 
-    def 'test build without options'(){
+    def 'test build without options'() {
         buildFile << DEFAULT_BUILD
+
         when:
-        def result = runTasks("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
 
         def version = new Version(buildVersion)
 
@@ -41,17 +43,18 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test build with ommit branch metadata option'() {
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
+        buildFile << DEFAULT_BUILD + '''
+
         versioner{
             omitBranchMetadata=true
         }
         '''.stripIndent()
 
+        setupGitRepo()
+
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
@@ -62,15 +65,13 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test versioned build'() {
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
+        buildFile << DEFAULT_BUILD
 
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
-        '''.stripIndent()
+        setupGitRepo()
 
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
@@ -81,49 +82,43 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.branch == 'master'
     }
 
-    def 'test feature branch build'(){
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
+    def 'test feature branch build'() {
+        buildFile << DEFAULT_BUILD
 
-        gx.execute('checkout -b feature/a-feature')
-        gx.execute('commit -m"adding commit in feature" --allow-empty')
-        gx.execute('commit -m"adding commit in feature" --allow-empty')
-
-
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
-        '''.stripIndent()
-
+        setupGitRepo()
+        execute('git checkout -b feature/a-feature')
+        execute("git commit -m'adding commit in feature' --allow-empty")
+        execute('git commit -m"adding commit in feature" --allow-empty')
+        execute('git log')
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def runner = getRunner(true, "build");
+        runner.forwardOutput()
+        def result = runner.build()
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
         version.valid
+        assert version.branch == 'feature-a-feature'
         assert version.major == '0'
         assert version.minor == '0'
         assert version.point == '3'
-        assert version.branch == 'feature-a-feature'
     }
 
-    def 'test tagged build'(){
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
+    def 'test tagged build'() {
+        buildFile << DEFAULT_BUILD
 
-        gx.execute('commit -m"adding commit in 2" --allow-empty')
-        gx.execute('commit -m"adding commit in 3" --allow-empty')
+        setupGitRepo()
+        execute('git commit -m"adding commit in 2" --allow-empty')
+        execute('git commit -m"adding commit in 3" --allow-empty')
 
-        gx.execute('tag -a v6.8 -m "my version 6.8"')
-        gx.execute('commit -m"adding commit in 4" --allow-empty')
-        gx.execute('commit -m"adding commit in 5" --allow-empty')
-
-
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
-        '''.stripIndent()
+        execute('git tag -a v6.8 -m "my version 6.8"')
+        execute('git commit -m"adding commit in 4" --allow-empty')
+        execute('git commit -m"adding commit in 5" --allow-empty')
 
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
@@ -136,21 +131,18 @@ class VersionerBuildTest extends IntegrationSpec {
 
 
     def 'test hotfix build'() {
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
+        buildFile << DEFAULT_BUILD
 
-        gx.execute('commit -m"adding commit in master" --allow-empty')
-        gx.execute('checkout -b hotfix/some-hotfix')
-        gx.execute('commit -m"adding file in hotfix" --allow-empty')
-        gx.execute('commit -m"adding file in hotfix" --allow-empty')
+        setupGitRepo()
+        execute('git commit -m"adding commit in master" --allow-empty')
+        execute('git checkout -b hotfix/some-hotfix')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
 
-
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
-        '''.stripIndent()
 
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
@@ -163,21 +155,17 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test release/hotfix build'() {
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
+        buildFile << DEFAULT_BUILD
 
-        gx.execute('commit -m"adding commit in master" --allow-empty')
-        gx.execute('checkout -b release/hotfix')
-        gx.execute('commit -m"adding file in hotfix" --allow-empty')
-        gx.execute('commit -m"adding file in hotfix" --allow-empty')
-
-
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
-        '''.stripIndent()
+        setupGitRepo()
+        execute('git commit -m"adding commit in master" --allow-empty')
+        execute('git checkout -b release/hotfix')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
 
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
@@ -190,21 +178,17 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def 'test hotfix/release build'() {
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + '''
+        buildFile << DEFAULT_BUILD
 
-        gx.execute('commit -m"adding commit in master" --allow-empty')
-        gx.execute('checkout -b hotfix/release')
-        gx.execute('commit -m"adding file in hotfix" --allow-empty')
-        gx.execute('commit -m"adding file in hotfix" --allow-empty')
-
-
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
-        '''.stripIndent()
+        setupGitRepo()
+        execute('git commit -m"adding commit in master" --allow-empty')
+        execute('git checkout -b hotfix/release')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
 
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
@@ -216,11 +200,9 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.branch == 'hotfix-release'
     }
 
-    def 'test with production plugin'() {
-        buildFile << DEFAULT_GIT_DRIVEN_BUILD + """
+    def 'test with publish plugin'() {
+        buildFile << DEFAULT_BUILD + """
 
-        apply plugin: 'java'
-        apply plugin: 'com.sarhanm.versioner'
         apply plugin: 'maven-publish'
         publishing{
             publications {
@@ -232,24 +214,34 @@ class VersionerBuildTest extends IntegrationSpec {
         }
         """.stripIndent()
 
+        setupGitRepo()
+        execute('git commit -m"adding 2nd commit in master" --allow-empty')
+        execute('git checkout -b hotfix/release')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
+
         when:
-        def result = runTasksSuccessfully("build")
-        def buildVersion = getVersionFromOutput(result.standardOutput)
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
         def version = new Version(buildVersion)
 
         then:
         version.valid
         assert version.major == '1'
         assert version.minor == '0'
-        assert version.point == '1'
-        assert version.branch == 'master'
+        assert version.point == '2'
+        assert version.hotfix == '2'
+        assert version.branch == 'hotfix-release'
 
     }
 
 
-    private String getVersionFromOutput(String output)
-    {
+    private String getVersionFromOutput(String output) {
         def r = output.find(VERSIONER_PATTERN)
-        return r[r.indexOf('=')+1..-1]
+        return r[r.indexOf('=') + 1..-1]
+    }
+
+    def execute(String cmd) {
+        Commandline.translateCommandline(cmd).execute([],projectDir.absoluteFile).waitFor()
     }
 }

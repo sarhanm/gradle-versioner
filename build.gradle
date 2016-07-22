@@ -45,12 +45,12 @@ dependencies {
     compile 'org.yaml:snakeyaml:1.17'
     compile ('org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'){
         exclude module: 'nekohtml'
-//        exclude module: 'xml-resolver'
     }
 
     compile ('org.spockframework:spock-core:1.0-groovy-2.4'){
         exclude group: 'org.codehaus.groovy'
     }
+
     testCompile 'com.netflix.nebula:nebula-test:4.2.2'
 }
 
@@ -153,3 +153,17 @@ task setupPluginUpload << {
 }
 
 tasks.publishPlugins.dependsOn tasks.setupPluginUpload
+
+// If we want our unit tests to work in intellij/eclipse, then we need to change
+// where our build output goes so its the same on the command line and in intellij.
+// This is because the java-gradle-plugin generates a meta-data file used in testing,
+// and that meta-data files adds build/classes/main to the classpath.
+if(System.properties.getProperty("local-eclipse", "false") == "true") {
+    project.plugins.withType(EclipsePlugin) {
+        project.eclipse {
+            classpath {
+                defaultOutputDir = project.file("${project.buildDir}/classes/main")
+            }
+        }
+    }
+}

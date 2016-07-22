@@ -1,6 +1,9 @@
 package com.sarhanm.resolver
 
 import com.sarhanm.IntegrationSpec
+import groovy.util.slurpersupport.GPathResult
+import groovy.util.slurpersupport.Node
+import groovy.util.slurpersupport.NodeChild
 
 /**
  * @author Mohammad Sarhan ( mohammad@ ) 
@@ -198,6 +201,86 @@ class VersionResolverBuildTest extends IntegrationSpec {
         then:
         result.output.contains "commons-configuration:commons-configuration:1.9\n"
 
+    }
+
+    def 'test pom generation with publish'() {
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
+        apply plugin: 'maven-publish'
+
+        dependencies{
+            compile 'commons-configuration:commons-configuration:auto'
+        }
+
+        publishing{
+            publications {
+                mavenTestPub(MavenPublication) {
+                    from project.components.java
+                    version project.version
+                }
+            }
+        }
+        """.stripIndent()
+
+        addJavaFile()
+
+        versionsFile.text = """
+        modules:
+          'commons-configuration:commons-configuration': '1.10'
+        """.stripIndent()
+
+        when:
+        runSuccessfully('generatePomFileForMavenTestPubPublication')
+
+        then:
+        def f = file("build/publications/mavenTestPub/pom-default.xml")
+        f.exists()
+
+        def root = new XmlSlurper().parse(file("build/publications/mavenTestPub/pom-default.xml"))
+        def dep = root.dependencies.dependency
+        dep.artifactId.text() == "commons-configuration"
+        dep.version.text() == '1.10'
+    }
+
+    def 'test pom generation with publish with auto version'() {
+        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
+        versionResolver{
+            resolveGeneratedPomVersions = false
+        }
+        apply plugin: 'com.sarhanm.versioner'
+        apply plugin: 'maven-publish'
+
+        dependencies{
+            compile 'commons-configuration:commons-configuration:auto'
+        }
+
+        publishing{
+            publications {
+                mavenTestPub(MavenPublication) {
+                    from project.components.java
+                }
+            }
+        }
+
+        """.stripIndent()
+
+        addJavaFile()
+
+        versionsFile.text = """
+        modules:
+          'commons-configuration:commons-configuration': '1.10'
+        """.stripIndent()
+
+        when:
+        runSuccessfully('generatePomFileForMavenTestPubPublication')
+
+        then:
+        def f = file("build/publications/mavenTestPub/pom-default.xml")
+        f.exists()
+
+        def root = new XmlSlurper().parse(file("build/publications/mavenTestPub/pom-default.xml"))
+        def dep = root.dependencies.dependency
+        dep.artifactId.text() == "commons-configuration"
+        dep.version.text() == 'auto'
     }
 
 
