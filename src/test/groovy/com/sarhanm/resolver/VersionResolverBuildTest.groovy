@@ -283,6 +283,50 @@ class VersionResolverBuildTest extends IntegrationSpec {
         dep.version.text() == 'auto'
     }
 
+    def 'test non-java pom resolution'(){
+        buildFile << """
+        plugins{
+            id 'com.sarhanm.version-resolver'
+        }
+
+        apply plugin: 'maven-publish'
+
+        configurations{
+            myconfig
+        }
+
+        dependencies{
+            myconfig 'commons-configuration:commons-configuration:auto'
+        }
+
+        task archive(type: Tar) {
+            from('lifecycle-flow.yaml')
+        }
+
+        publish.dependsOn archive
+
+        publishing {
+            publications {
+                myModule(MavenPublication) {
+                    artifact(archive)
+                }
+            }
+        }
+        """.stripIndent() + DEFAULT_MANIFEST
+
+        addJavaFile()
+
+        versionsFile.text = """
+        modules:
+          'commons-configuration:commons-configuration': '1.10'
+        """.stripIndent()
+
+        when:
+        runSuccessfully('build', "--stacktrace")
+
+        then:
+        true
+    }
 
     def addJavaFile() {
         //Need a java file to actually make compile go and resolution fail when we have an issue
