@@ -69,39 +69,41 @@ class VersionResolutionPlugin implements Plugin<Project>{
 
                         pub.pom.withXml { XmlProvider xml ->
 
-                            def dependencies = xml.asNode()?.dependencies?.dependency
-                            def dependencyMap = [:]
+                            if (project.configurations.findByName("runtime")) {
+                                def dependencies = xml.asNode()?.dependencies?.dependency
+                                def dependencyMap = [:]
 
-                            dependencyMap['runtime'] = project.configurations.runtime.incoming.resolutionResult.allDependencies
-                            dependencyMap['test'] = project.configurations.testRuntime.incoming.resolutionResult.allDependencies - dependencyMap['runtime']
+                                dependencyMap['runtime'] = project.configurations.runtime.incoming.resolutionResult.allDependencies
+                                dependencyMap['test'] = project.configurations.testRuntime.incoming.resolutionResult.allDependencies - dependencyMap['runtime']
 
-                            dependencies?.each { Node dep ->
-                                def group = dep.groupId.text()
-                                def name = dep.artifactId.text()
-                                def scope = dep.scope.text()
+                                dependencies?.each { Node dep ->
+                                    def group = dep.groupId.text()
+                                    def name = dep.artifactId.text()
+                                    def scope = dep.scope.text()
 
-                                if (scope == 'provided') {
-                                    scope = 'runtime'
+                                    if (scope == 'provided') {
+                                        scope = 'runtime'
+                                    }
+
+                                    ResolvedDependencyResult resolved = dependencyMap[scope].find { DependencyResult r ->
+                                        r.requested instanceof ModuleComponentSelector &&
+                                                r.requested.group == group &&
+                                                r.requested.module == name
+                                    }
+
+                                    if (!resolved) {
+                                        return
+                                    }
+
+                                    def versionNode = dep.version
+                                    if (!versionNode) {
+                                        dep.appendNode('version')
+                                    }
+                                    def moduleVersion = resolved.selected.moduleVersion
+                                    dep.groupId[0].value = moduleVersion.group
+                                    dep.artifactId[0].value = moduleVersion.name
+                                    dep.version[0].value = moduleVersion.version
                                 }
-
-                                ResolvedDependencyResult resolved = dependencyMap[scope].find { DependencyResult r ->
-                                    r.requested instanceof ModuleComponentSelector &&
-                                            r.requested.group == group &&
-                                            r.requested.module == name
-                                }
-
-                                if (!resolved) {
-                                    return
-                                }
-
-                                def versionNode = dep.version
-                                if (!versionNode) {
-                                    dep.appendNode('version')
-                                }
-                                def moduleVersion = resolved.selected.moduleVersion
-                                dep.groupId[0].value = moduleVersion.group
-                                dep.artifactId[0].value = moduleVersion.name
-                                dep.version[0].value = moduleVersion.version
                             }
                         }
                     }
