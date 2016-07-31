@@ -158,7 +158,7 @@ tasks.publishPlugins.dependsOn tasks.setupPluginUpload
 // where our build output goes so its the same on the command line and in intellij.
 // This is because the java-gradle-plugin generates a meta-data file used in testing,
 // and that meta-data files adds build/classes/main to the classpath.
-if(System.properties.getProperty("local-eclipse", "false") == "true") {
+if(System.properties.getProperty("local-eclipse", "true") == "true") {
     project.plugins.withType(EclipsePlugin) {
         project.eclipse {
             classpath {
