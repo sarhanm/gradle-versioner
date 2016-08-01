@@ -51,7 +51,7 @@ class VersionResolverExclusionBuildTest extends IntegrationSpec {
         versionsFile.parentFile.mkdirs()
     }
 
-    def 'test version resolution'() {
+    def 'test exclude transitive dependency'() {
         buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
 
         dependencies{
@@ -76,7 +76,7 @@ class VersionResolverExclusionBuildTest extends IntegrationSpec {
         then:
         !result.output.contains("FAILED")
         // This should now be excluded
-        !result.output.contains("commons-logging")
+        !result.output.contains("commons-logging:commons-logging")
     }
 
     @Ignore("Need to update the nebula plugin so it does the right thing for exclusions")
