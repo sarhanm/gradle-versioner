@@ -24,8 +24,9 @@ class VersionResolutionPlugin implements Plugin<Project> {
 
         // Allow programatic access to the resolver so users can add to
         // additional plugins (ie springs dependency management plugin)
-        def resolver = project.extensions.create("versionResolver", VersionResolver, project, versionManifestOpt)
+        def resolver = new VersionResolver(project, versionManifestOpt)
 
+        project.extensions.add("versionResolverAction", resolver)
         //add our resolver to existing configuration and any new configuration added
         // in the future.
         project.configurations.all { Configuration c ->

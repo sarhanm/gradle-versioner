@@ -203,9 +203,22 @@ class VersionResolverBuildTest extends IntegrationSpec {
 
     }
 
-    def 'test pom generation with publish'() {
-        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
+    def 'test pom generation with nebula-publish'() {
+
+        given: 'Apply the nebula-resolved-dependencies'
+
+        buildFile <<  '''
+        buildscript {
+          repositories { jcenter() }
+          dependencies {
+            classpath 'com.netflix.nebula:nebula-publishing-plugin:4.8.1'
+          }
+        }
+        '''.stripIndent() + DEFAULT_BUILD + DEFAULT_MANIFEST + '''
+
         apply plugin: 'maven-publish'
+
+        apply plugin: "nebula.maven-resolved-dependencies"
 
         dependencies{
             compile 'commons-configuration:commons-configuration:auto'
@@ -219,7 +232,7 @@ class VersionResolverBuildTest extends IntegrationSpec {
                 }
             }
         }
-        """.stripIndent()
+        '''.stripIndent()
 
         addJavaFile()
 
@@ -228,10 +241,10 @@ class VersionResolverBuildTest extends IntegrationSpec {
           'commons-configuration:commons-configuration': '1.10'
         """.stripIndent()
 
-        when:
+        when: 'Generate the pom file'
         runSuccessfully('generatePomFileForMavenTestPubPublication')
 
-        then:
+        then: 'Pom should include resolved versions'
         def f = file("build/publications/mavenTestPub/pom-default.xml")
         f.exists()
 
@@ -243,9 +256,6 @@ class VersionResolverBuildTest extends IntegrationSpec {
 
     def 'test pom generation with publish with auto version'() {
         buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
-        versionResolver{
-            resolveGeneratedPomVersions = false
-        }
         apply plugin: 'com.sarhanm.versioner'
         apply plugin: 'maven-publish'
 
