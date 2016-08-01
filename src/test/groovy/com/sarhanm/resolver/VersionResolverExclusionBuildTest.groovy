@@ -10,20 +10,22 @@ import spock.lang.Ignore
  */
 class VersionResolverExclusionBuildTest extends IntegrationSpec {
 
-    static DEFAULT_BUILD = '''
+    static BUILDSCRIPT = '''
+
+    buildscript {
+      repositories { jcenter() }
+      dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:4.8.1'
+      }
+    }
+    '''.stripIndent()
+
+    static BUILD = '''
+
     plugins{
         id 'com.sarhanm.version-resolver'
-        id "io.spring.dependency-management" version "0.6.0.RELEASE"
     }
-
-    def resolverAction = project.findProperty('versionResolverAction')
-    dependencyManagement {
-        overriddenByDependencies = false
-        resolutionStrategy { ResolutionStrategy s ->
-            s.eachDependency(resolverAction)
-        }
-    }
-
     apply plugin: 'java'
     apply plugin: 'maven'
 
@@ -32,7 +34,19 @@ class VersionResolverExclusionBuildTest extends IntegrationSpec {
         System.setProperty('maven.repo.local', file('build/.m2/repository').path)
         mavenLocal()
     }
+    '''.stripIndent()
 
+    static DEFAULT_BUILD = BUILDSCRIPT + BUILD
+
+    static DEPENDENCY_MANAGEMENT = '''
+
+    def resolverAction = project.findProperty('versionResolverAction')
+    dependencyManagement {
+        overriddenByDependencies = false
+        resolutionStrategy { ResolutionStrategy s ->
+            s.eachDependency(resolverAction)
+        }
+    }
     '''.stripIndent()
 
     static DEFAULT_MANIFEST = '''
@@ -44,24 +58,18 @@ class VersionResolverExclusionBuildTest extends IntegrationSpec {
     }
     '''.stripIndent()
 
+    static PRINT_CLASSPAHT_TASK = '''
+
+    task printClasspath << {
+            println "Classpath: " + configurations.runtime.asPath
+    }
+    '''.stripIndent()
+
     def versionsFile
 
     def setup() {
         versionsFile = file("build/versions.yaml")
         versionsFile.parentFile.mkdirs()
-    }
-
-    def 'test exclude transitive dependency'() {
-        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
-
-        dependencies{
-            compile 'test:transitive-exclude:auto'
-        }
-        """.stripIndent()
-
-        def repo = file('build/.m2/repository')
-        repo.mkdirs()
-        FileUtils.copyDirectory(new File("src/test/resources/test-repo"), repo)
 
         addJavaFile()
 
@@ -70,38 +78,66 @@ class VersionResolverExclusionBuildTest extends IntegrationSpec {
           'test:transitive-exclude': 1.0
         """.stripIndent()
 
-        when:
-        def result = runSuccessfully('dependencies')
-
-        then:
-        !result.output.contains("FAILED")
-        // This should now be excluded
-        !result.output.contains("commons-logging:commons-logging")
+        def repo = file('build/.m2/repository')
+        repo.mkdirs()
+        FileUtils.copyDirectory(new File("src/test/resources/test-repo"), repo)
     }
 
-    @Ignore("Need to update the nebula plugin so it does the right thing for exclusions")
-    def 'exclusion in generated pom'() {
-        buildFile << '''
-        buildscript {
-          repositories { jcenter() }
-          dependencies {
-            classpath 'com.netflix.nebula:nebula-publishing-plugin:4.8.1'
-          }
+    def 'direct exclusion on classpath'() {
+        buildFile << DEFAULT_BUILD +
+                DEFAULT_MANIFEST +
+                PRINT_CLASSPAHT_TASK +
+                '''
+        dependencies{
+            compile ('test:transitive-exclude:auto'){
+                exclude module: 'commons-logging'
+            }
         }
-        '''.stripIndent() + DEFAULT_BUILD + DEFAULT_MANIFEST + """
+        '''.stripIndent()
 
+        when:
+        def result = runSuccessfully("printClasspath")
+
+        then: 'Make sure that the excluded dependency is not on the classpath'
+        !result.output.substring(result.output.indexOf("Classpath:")).contains("commons-logging")
+
+    }
+
+    def 'transitive exclusion on classpath'() {
+        buildFile << DEFAULT_BUILD +
+                DEFAULT_MANIFEST +
+                PRINT_CLASSPAHT_TASK +
+                '''
+        apply plugin: 'io.spring.dependency-management'
+        dependencies{
+            compile ('test:transitive-exclude:auto')
+        }
+        '''.stripIndent() + DEPENDENCY_MANAGEMENT
+
+        when:
+        def result = runSuccessfully("printClasspath")
+
+        then: 'Make sure that the excluded dependency is not on the classpath'
+        !result.output.substring(result.output.indexOf("Classpath:")).contains("commons-logging")
+    }
+
+
+    def 'direct exclusion in pom'() {
+
+        buildFile << DEFAULT_BUILD +
+                DEFAULT_MANIFEST +
+                '''
         group = 'test'
         version = '2.0'
 
-        apply plugin: 'maven-publish'
-        apply plugin: 'nebula.maven-excludes'
-        apply plugin: "nebula.maven-resolved-dependencies"
-
         dependencies{
-            compile 'test:transitive-exclude:auto'
+            compile ('test:transitive-exclude:auto'){
+                exclude module: 'foobar'
+            }
         }
 
-        publishing{
+        apply plugin: 'maven-publish'
+         publishing{
             publications {
                 mavenTestPub(MavenPublication) {
                     from project.components.java
@@ -109,30 +145,21 @@ class VersionResolverExclusionBuildTest extends IntegrationSpec {
             }
         }
 
-        """.stripIndent()
-
-        def repo = file('build/.m2/repository')
-        repo.mkdirs()
-        FileUtils.copyDirectory(new File("src/test/resources/test-repo"), repo)
-
-        addJavaFile()
-
-        versionsFile.text = """
-        modules:
-          'test:transitive-exclude': 1.0
-        """.stripIndent()
+        '''.stripIndent()
 
         when:
-        runSuccessfully("build", 'publishToMavenLocal')
+        def result = runSuccessfully("publishToMavenLocal")
 
-        then:
+        then: 'gradle can handle direct exclusion without plugin support'
 
         def root = new XmlSlurper().parse(file("build/publications/mavenTestPub/pom-default.xml"))
 
         def node = root.dependencies.dependency
 
-        node.exclusions.exclusion.artifactId.text() == 'commons-logging'
-        node.version.text() == '1.0'
+        // we expect size of 1 because gradle only handle direct exclusions
+        // and not ones that are added via a plugin, at least not currently.
+        node.exclusions.size() == 1
+        node.exclusions.exclusion.artifactId.text() == 'foobar'
     }
 
     def addJavaFile() {
