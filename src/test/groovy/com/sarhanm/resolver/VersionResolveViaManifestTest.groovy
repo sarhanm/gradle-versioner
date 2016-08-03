@@ -28,7 +28,7 @@ class VersionResolveViaManifestTest {
         detailsMock.demand.getRequested(1) { params -> selectorMock.proxyInstance() }
 
         def details = detailsMock.proxyInstance()
-        def resolver = new VersionResolver(null, options)
+        def resolver = new VersionResolverInternal(null, options)
         def ver = resolver.resolveVersionFromManifest(details)
         assert ver == "1.0-SNAPSHOT"
 
@@ -47,7 +47,7 @@ class VersionResolveViaManifestTest {
         detailsMock.demand.getRequested(1) { params -> selectorMock.proxyInstance() }
 
         def details = detailsMock.proxyInstance()
-        def resolver = new VersionResolver(null, null,file)
+        def resolver = new VersionResolverInternal(null, null,file)
         def ver = resolver.resolveVersionFromManifest(details)
         assert ver == "1.0-SNAPSHOT"
 
@@ -67,7 +67,7 @@ class VersionResolveViaManifestTest {
         def detailsMock = new MockFor(DependencyResolveDetails)
         detailsMock.demand.getRequested { params -> selectorMock.proxyInstance() }
 
-        def resolver = new VersionResolver(null, options)
+        def resolver = new VersionResolverInternal(null, options)
         try {
             def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         } catch (IllegalStateException ex){
@@ -93,7 +93,7 @@ class VersionResolveViaManifestTest {
         def detailsMock = new MockFor(DependencyResolveDetails)
         detailsMock.demand.getRequested{params-> selectorMock.proxyInstance()}
 
-        def resolver = new VersionResolver(null, options)
+        def resolver = new VersionResolverInternal(null, options)
         def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         assert ver == "1.2.3"
 
@@ -116,7 +116,7 @@ class VersionResolveViaManifestTest {
         detailsMock.demand.getRequested(1) { params -> selectorMock.proxyInstance() }
 
         def details = detailsMock.proxyInstance()
-        def resolver = new VersionResolver(null,options)
+        def resolver = new VersionResolverInternal(null,options)
         def ver = resolver.resolveVersionFromManifest(details)
         assert ver == "4.3.5.Final"
 

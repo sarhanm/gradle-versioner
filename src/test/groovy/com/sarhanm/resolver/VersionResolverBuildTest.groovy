@@ -1,9 +1,7 @@
 package com.sarhanm.resolver
 
 import com.sarhanm.IntegrationSpec
-import groovy.util.slurpersupport.GPathResult
-import groovy.util.slurpersupport.Node
-import groovy.util.slurpersupport.NodeChild
+import org.apache.commons.io.FileUtils
 
 /**
  * @author Mohammad Sarhan ( mohammad@ ) 
@@ -338,6 +336,58 @@ class VersionResolverBuildTest extends IntegrationSpec {
         true
     }
 
+    def 'test via configuration'(){
+        buildFile << '''
+        buildscript {
+          repositories { jcenter() }
+          dependencies {
+            classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
+          }
+        }
+
+        plugins{
+            id 'com.sarhanm.version-resolver'
+        }
+
+        apply plugin: 'java'
+        apply plugin: 'io.spring.dependency-management'
+
+        def resolverAction = project.findProperty('versionResolverAction')
+        dependencyManagement {
+            overriddenByDependencies = false
+            resolutionStrategy { ResolutionStrategy s ->
+                s.eachDependency(resolverAction)
+            }
+        }
+
+        dependencies{
+            versionManifest 'test:manifest:1.0@yaml'
+            compile 'commons-configuration:commons-configuration:auto'
+        }
+
+        repositories{
+            System.setProperty('maven.repo.local', file('build/.m2/repository').path)
+            mavenLocal()
+            jcenter()
+        }
+
+        '''.stripIndent()
+
+        addJavaFile()
+
+        def repo = file('build/.m2/repository')
+        repo.mkdirs()
+        FileUtils.copyDirectory(new File("src/test/resources/test-repo"), repo)
+
+        when:
+        def runner = getRunner(true,"build", "--info")
+        runner.forwardOutput()
+        def r = runner.build()
+
+        then:
+        println r.output
+
+    }
     def addJavaFile() {
         //Need a java file to actually make compile go and resolution fail when we have an issue
         //otherwise resolution fails silently

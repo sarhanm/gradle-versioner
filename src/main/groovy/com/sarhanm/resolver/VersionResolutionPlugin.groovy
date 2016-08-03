@@ -13,20 +13,20 @@ class VersionResolutionPlugin implements Plugin<Project> {
     public static final String VERSION_RESOLVER = "versionResolver"
     private static final String VERSION_MANIFEST_EXT = "versionManifest"
 
-    private static final String VERSION_MANIFEST_CONFIGURATION = "versionManifest"
+    static final String VERSION_MANIFEST_CONFIGURATION = "versionManifest"
 
     @Override
     void apply(Project project) {
         def versionResolverOpt = project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
         def versionManifestOpt = versionResolverOpt.extensions.create(VERSION_MANIFEST_EXT, VersionManifestOption)
 
-        project.configurations.maybeCreate(VERSION_MANIFEST_CONFIGURATION)
+        def manifestVersionConfig =project.configurations.maybeCreate(VERSION_MANIFEST_CONFIGURATION)
 
         // Allow programatic access to the resolver so users can add to
         // additional plugins (ie springs dependency management plugin)
-        def resolver = new VersionResolver(project, versionManifestOpt)
+        def resolver = new VersionResolverInternal(project, versionManifestOpt)
 
-        project.extensions.add("versionResolverAction", resolver)
+        project.extensions.add("versionResolverAction", new VersionResolver(manifestVersionConfig, resolver))
         //add our resolver to existing configuration and any new configuration added
         // in the future.
         project.configurations.all { Configuration c ->
