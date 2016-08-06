@@ -1,7 +1,7 @@
 # [Gradle Versioner Plugin](https://github.com/sarhanm/gradle-versioner/wiki)
 
 [![Build Status](https://travis-ci.org/sarhanm/gradle-versioner.svg?branch=master)](https://travis-ci.org/sarhanm/gradle-versioner)
-
+ [![Coverage Status](https://coveralls.io/repos/github/sarhanm/gradle-versioner/badge.svg?branch=master)](https://coveralls.io/github/sarhanm/gradle-versioner?branch=master)
 ## Overview
 
 With this plugin, you can create project versions like: 
