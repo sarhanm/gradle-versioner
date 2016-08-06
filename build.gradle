@@ -16,6 +16,12 @@ buildscript {
         classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
     }
 }
+plugins {
+    id 'jacoco'
+    id 'com.github.kt3k.coveralls' version '2.6.3'
+}
+
+
 
 apply plugin: 'com.sarhanm.versioner'
 apply plugin: 'java-gradle-plugin'
@@ -24,7 +30,6 @@ apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply plugin: "jacoco"
 
 versioner{
     //Community Plugins are required to have a clean version string.
@@ -52,6 +57,13 @@ dependencies {
     }
 
     testCompile 'com.netflix.nebula:nebula-test:4.2.2'
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
 }
 
 apply plugin: 'com.jfrog.bintray'
