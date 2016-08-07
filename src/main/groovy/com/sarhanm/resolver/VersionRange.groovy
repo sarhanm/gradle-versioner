@@ -23,16 +23,14 @@ class VersionRange {
 
         def matcher = range =~ regex_range
 
-        if (matcher.matches())
-        {
+        if (matcher.matches()) {
             parseRange(matcher)
             valid = true
             return
         }
 
         matcher = range =~ regex_dynamic_version
-        if(matcher.matches())
-        {
+        if (matcher.matches()) {
             parseDynamicVersion(matcher)
             valid = true
             return
@@ -41,27 +39,25 @@ class VersionRange {
         valid = false
     }
 
-    def boolean contains(String v)
-    {
+    def boolean contains(String v) {
         def version = new Version(v)
 
-        if(!version.valid)
+        if (!version.valid)
             return false
 
-        if ( !( lower?.branch == version.branch || upper?.branch == version.branch) )
+        if (!(lower?.branch == version.branch || upper?.branch == version.branch))
             return false
 
-        if(lower && (lower > version || (!lowerInclusive && lower == version)))
+        if (lower && (lower > version || (!lowerInclusive && lower == version)))
             return false
 
-        if(upper && (upper < version || (!upperInclusive && upper == version)))
+        if (upper && (upper < version || (!upperInclusive && upper == version)))
             return false
 
         return true
     }
 
-    private parseRange(def Matcher matcher)
-    {
+    private parseRange(def Matcher matcher) {
 
         lowerInclusive = matcher[0][1] == "["
         upperInclusive = matcher[0][16] == "]"
@@ -69,20 +65,18 @@ class VersionRange {
         def String lowerString = matcher[0][2]
         def String upperString = matcher[0][9]
 
-        if(lowerString)
-        {
-            lower = new Version(lowerString+".a")
+        if (lowerString) {
+            lower = new Version(lowerString + ".a")
         }
 
-        if(upperString)
-            upper = new Version(upperString+".a")
+        if (upperString)
+            upper = new Version(upperString + ".a")
 
         if (!lower && !upper)
             throw new IllegalArgumentException("Cannot have both lower and upper ranges missing")
     }
 
-    private parseDynamicVersion(def Matcher matcher)
-    {
+    private parseDynamicVersion(def Matcher matcher) {
         lower = new Version(matcher[0][1] + ".a")
         lowerInclusive = true
     }

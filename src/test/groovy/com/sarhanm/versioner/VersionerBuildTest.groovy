@@ -19,7 +19,7 @@ class VersionerBuildTest extends IntegrationSpec {
             apply plugin: 'java'
         '''.stripIndent()
 
-    def setupGitRepo(){
+    def setupGitRepo() {
         execute('git init .')
         execute('git add .')
         execute('git config user.email "test@test.com"')
@@ -242,6 +242,6 @@ class VersionerBuildTest extends IntegrationSpec {
     }
 
     def execute(String cmd) {
-        Commandline.translateCommandline(cmd).execute([],projectDir.absoluteFile).waitFor()
+        Commandline.translateCommandline(cmd).execute([], projectDir.absoluteFile).waitFor()
     }
 }

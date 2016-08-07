@@ -4,10 +4,8 @@ package com.sarhanm.versioner
  * Mostly to be mockable
  * @author mohammad sarhan
  */
-class EnvReader
-{
-    def getBranchNameFromEnv(branchNameEnv=null)
-    {
+class EnvReader {
+    def getBranchNameFromEnv(branchNameEnv = null) {
         if (branchNameEnv && System.env[branchNameEnv] != null) {
             return System.env[branchNameEnv]
         }

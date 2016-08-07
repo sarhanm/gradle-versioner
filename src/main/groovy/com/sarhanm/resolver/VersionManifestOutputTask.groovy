@@ -10,16 +10,14 @@ import org.yaml.snakeyaml.Yaml
  * Task to output the computed version manifest to a well-known location
  * @author mohammad sarhan
  */
-class VersionManifestOutputTask extends DefaultTask
-{
+class VersionManifestOutputTask extends DefaultTask {
     def VersionResolverInternal versionResolver
 
     @OutputFile
     def File outputFile
 
     @TaskAction
-    def outputManifest()
-    {
+    def outputManifest() {
         def data = versionResolver.getComputedVersionManifest()
 
         def options = new DumperOptions()

@@ -12,8 +12,7 @@ import org.junit.Test
 class VersionResolverPluginTest {
 
     @Test
-    public void testPlugin()
-    {
+    public void testPlugin() {
         Project project = ProjectBuilder.builder().build()
         project.plugins.apply(JavaPlugin)
         project.plugins.apply(VersionResolutionPlugin)

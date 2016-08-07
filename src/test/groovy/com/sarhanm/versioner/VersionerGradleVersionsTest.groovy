@@ -7,8 +7,7 @@ import com.sarhanm.IntegrationSpec
  * @author Mohammad Sarhan
  */
 //This test fails on travis ci. not sure why yet.....
-class VersionerGradleVersionsTest extends IntegrationSpec
-{
+class VersionerGradleVersionsTest extends IntegrationSpec {
 
     static DEFAULT_BUILD = '''
         plugins{
@@ -31,7 +30,7 @@ class VersionerGradleVersionsTest extends IntegrationSpec
         result
     }
 
-    def 'verify plugin with version 2.9'(){
+    def 'verify plugin with version 2.9'() {
         buildFile << DEFAULT_BUILD
         gradleVersion = '2.9'
 
@@ -43,7 +42,7 @@ class VersionerGradleVersionsTest extends IntegrationSpec
         result
     }
 
-    def 'verify plugin with version 2.10'(){
+    def 'verify plugin with version 2.10'() {
         buildFile << DEFAULT_BUILD
         gradleVersion = '2.10'
 

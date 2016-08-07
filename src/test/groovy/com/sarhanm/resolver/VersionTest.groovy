@@ -13,8 +13,7 @@ import static junit.framework.TestCase.assertTrue
 class VersionTest {
 
     @Test
-    void testVersionValid()
-    {
+    void testVersionValid() {
         Version.metaClass.static.isValidVersion << { String it -> return new Version(it).valid }
 
         //Valid version strings
@@ -36,8 +35,7 @@ class VersionTest {
     }
 
     @Test
-    void testVersionParse()
-    {
+    void testVersionParse() {
         def v = new Version("1.2.3.master.abcdf")
         assertEquals '1', v.major
         assertEquals '2', v.minor
@@ -62,8 +60,7 @@ class VersionTest {
     }
 
     @Test
-    void testToString()
-    {
+    void testToString() {
         def v = new Version("1.2.3.master.ab4f")
         assert v.version == '1.2.3.master.ab4f'
     }

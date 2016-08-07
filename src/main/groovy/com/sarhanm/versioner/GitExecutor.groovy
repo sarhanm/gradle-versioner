@@ -7,10 +7,10 @@ import org.gradle.api.Project
  * Separate class so we can mock and test
  * @author mohammad sarhan
  */
-class GitExecutor
-{
+class GitExecutor {
 
     def Project project
+
     GitExecutor(def Project project) {
         this.project = project
     }
@@ -20,8 +20,7 @@ class GitExecutor
      * @param cmdArgs
      * @return output from command execution
      */
-    def execute(cmdArgs)
-    {
+    def execute(cmdArgs) {
         def cmd = "git " + cmdArgs
 
         //Deal with parameters that have spaces but are quoted
@@ -39,9 +38,9 @@ class GitExecutor
                     errorOutput = error
                 }
 
-                if ( result.exitValue == 0 )
+                if (result.exitValue == 0)
                     return output.toString().trim()
-                else{
+                else {
                     project.logger.debug "ERROR Executing git $cmdArgs: $error"
                 }
 

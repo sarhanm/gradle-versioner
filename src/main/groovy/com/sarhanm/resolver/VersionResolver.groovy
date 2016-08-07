@@ -27,16 +27,14 @@ class VersionResolver implements Action<DependencyResolveDetails> {
     @Override
     void execute(DependencyResolveDetails dependencyResolveDetails) {
 
-        def found = versionManifest &&  versionManifest.dependencies.find {
+        def found = versionManifest && versionManifest.dependencies.find {
             it.group == dependencyResolveDetails.requested.group &&
-            it.name == dependencyResolveDetails.requested.name
+                    it.name == dependencyResolveDetails.requested.name
         }
 
-        if ( !found )
-            versionResolverInternal.execute ( dependencyResolveDetails )
+        if (!found)
+            versionResolverInternal.execute(dependencyResolveDetails)
     }
-
-
 
 
 }

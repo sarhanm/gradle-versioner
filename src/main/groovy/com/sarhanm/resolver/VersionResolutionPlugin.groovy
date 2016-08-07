@@ -20,7 +20,7 @@ class VersionResolutionPlugin implements Plugin<Project> {
         def versionResolverOpt = project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
         def versionManifestOpt = versionResolverOpt.extensions.create(VERSION_MANIFEST_EXT, VersionManifestOption)
 
-        def manifestVersionConfig =project.configurations.maybeCreate(VERSION_MANIFEST_CONFIGURATION)
+        def manifestVersionConfig = project.configurations.maybeCreate(VERSION_MANIFEST_CONFIGURATION)
 
         // Allow programatic access to the resolver so users can add to
         // additional plugins (ie springs dependency management plugin)

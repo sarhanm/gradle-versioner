@@ -47,7 +47,7 @@ class VersionResolveViaManifestTest {
         detailsMock.demand.getRequested(1) { params -> selectorMock.proxyInstance() }
 
         def details = detailsMock.proxyInstance()
-        def resolver = new VersionResolverInternal(null, null,file)
+        def resolver = new VersionResolverInternal(null, null, file)
         def ver = resolver.resolveVersionFromManifest(details)
         assert ver == "1.0-SNAPSHOT"
 
@@ -70,7 +70,7 @@ class VersionResolveViaManifestTest {
         def resolver = new VersionResolverInternal(null, options)
         try {
             def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
-        } catch (IllegalStateException ex){
+        } catch (IllegalStateException ex) {
             //ignore. expected
             return
         }
@@ -79,19 +79,18 @@ class VersionResolveViaManifestTest {
     }
 
     @Test
-    void testNoExecution()
-    {
+    void testNoExecution() {
         def file = new File("src/test/resources/versions.yaml")
 
         def options = getOption(file.toURI().toString())
 
         def selectorMock = new MockFor(ModuleVersionSelector)
-        selectorMock.demand.getVersion{ params-> '1.2.3'}
-        selectorMock.demand.getGroup{ params -> 'com.coinfling'}
-        selectorMock.demand.getName{ params -> 'foobar'}
+        selectorMock.demand.getVersion { params -> '1.2.3' }
+        selectorMock.demand.getGroup { params -> 'com.coinfling' }
+        selectorMock.demand.getName { params -> 'foobar' }
 
         def detailsMock = new MockFor(DependencyResolveDetails)
-        detailsMock.demand.getRequested{params-> selectorMock.proxyInstance()}
+        detailsMock.demand.getRequested { params -> selectorMock.proxyInstance() }
 
         def resolver = new VersionResolverInternal(null, options)
         def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
@@ -99,31 +98,7 @@ class VersionResolveViaManifestTest {
 
     }
 
-    //@Test
-    void testRemoteLocation() {
-
-        def options = getOption("https://repo.coinfling.com/service/local/artifact/maven/redirect?r=public&g=com.coinfling&a=version-manifest&v=2.0.master-SNAPSHOT&e=yaml&c=yaml",
-                                "nexusread", "fulus777")
-
-        options.manifest.ignoreSSL = true
-
-        def selectorMock = new MockFor(ModuleVersionSelector)
-        selectorMock.demand.getVersion(1) { params -> 'auto' }
-        selectorMock.demand.getGroup { params -> 'org.hibernate' }
-        selectorMock.demand.getName { params -> 'hibernate-core' }
-
-        def detailsMock = new MockFor(DependencyResolveDetails)
-        detailsMock.demand.getRequested(1) { params -> selectorMock.proxyInstance() }
-
-        def details = detailsMock.proxyInstance()
-        def resolver = new VersionResolverInternal(null,options)
-        def ver = resolver.resolveVersionFromManifest(details)
-        assert ver == "4.3.5.Final"
-
-    }
-
-    private VersionManifestOption getOption(def url, def username = null, def password = null)
-    {
-        [ url: url, username: username, password: password] as VersionManifestOption
+    private VersionManifestOption getOption(def url, def username = null, def password = null) {
+        [url: url, username: username, password: password] as VersionManifestOption
     }
 }

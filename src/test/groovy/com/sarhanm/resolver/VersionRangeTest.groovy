@@ -12,8 +12,7 @@ import static org.junit.Assert.*
 class VersionRangeTest {
 
     @Test
-    void testValidRange()
-    {
+    void testValidRange() {
         VersionRange.metaClass.static.isValidRange << { String it -> return new VersionRange(it).valid }
 
         assertTrue VersionRange.isValidRange('[1.2.3.master,]')
@@ -90,8 +89,7 @@ class VersionRangeTest {
     }
 
     @Test
-    void testInclusiveExclusiveRange()
-    {
+    void testInclusiveExclusiveRange() {
         def r = new VersionRange("[1.2.3.master,]")
         assertNotNull r
         assertTrue r.lowerInclusive
@@ -109,8 +107,7 @@ class VersionRangeTest {
     }
 
     @Test
-    void testContainsLower()
-    {
+    void testContainsLower() {
         def r = new VersionRange("[1.2.3.master,]")
         assert !r.contains('1.2.3.foobar.abc')
 
@@ -125,8 +122,7 @@ class VersionRangeTest {
 
 
     @Test
-    void testContainsUpper()
-    {
+    void testContainsUpper() {
         def r = new VersionRange("[,1.2.3.master]")
         assert !r.contains('1.2.3.foobar.abc')
 
@@ -141,8 +137,7 @@ class VersionRangeTest {
     }
 
     @Test
-    void testContainsRange()
-    {
+    void testContainsRange() {
         def r = new VersionRange("[1.n.3.master,2.0.0.master]")
         assert r.contains('1.2.3.master.a')
         assert r.contains('1.4.3098.master.a')

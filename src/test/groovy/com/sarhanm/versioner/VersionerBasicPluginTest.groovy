@@ -6,7 +6,7 @@ import nebula.test.PluginProjectSpec
  *
  * @author Mohammad Sarhan
  */
-class VersionerBasicPluginTest extends PluginProjectSpec{
+class VersionerBasicPluginTest extends PluginProjectSpec {
 
     @Override
     String getPluginName() {

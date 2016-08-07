@@ -12,8 +12,7 @@ class VersionDynamicTest {
 
 
     @Test
-    void testDynamicVersionValid()
-    {
+    void testDynamicVersionValid() {
         VersionRange.metaClass.static.isValidRange << { String it -> return new VersionRange(it).valid }
 
         assertTrue VersionRange.isValidRange("n.n.n.master+")
@@ -32,8 +31,7 @@ class VersionDynamicTest {
 
 
     @Test
-    void testDynamicVersion()
-    {
+    void testDynamicVersion() {
         def r = new VersionRange("1.n.n.master+")
 
         assertNotNull r
@@ -67,8 +65,7 @@ class VersionDynamicTest {
     }
 
     @Test
-    void testContainsDynamicVersion()
-    {
+    void testContainsDynamicVersion() {
         def r = new VersionRange('1.2.3.master+')
         assert r.contains('1.2.3.master.a')
         assert r.contains('1.2.4.master.a')
@@ -83,8 +80,6 @@ class VersionDynamicTest {
         assert r.contains('1.0.12.master.f7810ef')
         assert r.contains('1.0.16.master.66e8edb')
     }
-
-
 
 
 }
