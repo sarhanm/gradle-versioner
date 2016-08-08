@@ -28,18 +28,15 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     private Project project
     private VersionManifestOption options
     private List<ResolutionAwareRepository> repositories = null
-    private File manifestFile
     private usedVersions
     private computedManifest
     private siblingProject = new HashSet();
     private Map<String, String> explicitVersion = [:]
 
-    VersionResolverInternal(Project project, VersionManifestOption manifestOptions = null, File manifestFile = null) {
+    VersionResolverInternal(Project project, VersionManifestOption manifestOptions = null) {
         this.project = project
         this.repositories = null;
-        this.manifestFile = manifestFile
         this.options = manifestOptions
-
         this.usedVersions = [:]
         this.computedManifest = ['modules': usedVersions]
 
@@ -175,7 +172,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                 //we always resolve to what is in the manifest
                 ver = getVersionFromManifest(group, name)
                 if (!ver)
-                    throw new RuntimeException("Could not resolve manifest location ($manifestFile , $options.url)")
+                    throw new RuntimeException("Could not resolve manifest location (${resolveManifestConfiguration()} , ${options?.url})")
 
             }
         }
@@ -218,70 +215,85 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
      */
     @Memoized
     @Synchronized
-    private File resolveManifestConfiguration() {
-
-        if (manifestFile == null) {
-            def versionManifest = project?.configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
-
-            def resolved = versionManifest?.resolve()
-            if (resolved && !resolved.empty) {
-                manifestFile = resolved.first()
-            }
-        }
-        manifestFile
+    private List<File> resolveManifestConfiguration() {
+        def versionManifest = project?.configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
+        def resolved = versionManifest?.resolve()
+        resolved && !resolved.empty ? new ArrayList<>(resolved) : null
     }
 
     @Synchronized
     @Memoized
     private getManifest() {
-        if (manifestFile == null)
-            resolveManifestConfiguration()
 
-        def location = manifestFile?.toURI()?.toString() ?: options.url
+        def filesToLoad = []
+
+        resolveManifestConfiguration()?.each {
+            filesToLoad.add it.toURI()
+        }
+
+        if (options?.url)
+            filesToLoad.add options.url.toURI()
 
         //It is possible to use the plugin without providing a manifest.
         // For example, if you just wanted to use version ranges.
-        if (!location)
-            return null
+        if (filesToLoad.isEmpty())
+            return
 
-        def text = null
-        if (location.startsWith("http")) {
 
-            def builder = new HTTPBuilder(location)
+        def allModules = [:]
 
-            if (options.username != null) {
-                builder.auth.basic options.username, options.password
-            }
+        Yaml yamlLoader = new Yaml()
 
-            if (options.ignoreSSL)
-                builder.ignoreSSLIssues()
+        filesToLoad.each { URI location ->
 
-            builder.request(Method.GET) { rep ->
-                // executed for all successful responses:
-                response.success = { resp, reader ->
-                    assert resp.statusLine.statusCode == 200
-                    text = reader.text
-                    logger.debug("Version Manifest: $location")
+            def text = null
+
+            if (location.scheme.startsWith("http")) {
+
+                def builder = new HTTPBuilder(location)
+
+                if (options?.username != null) {
+                    builder.auth.basic options.username, options.password
                 }
 
-                response.failure = { resp ->
-                    logger.error "Unexpected error: ${resp.statusLine.statusCode} : ${resp.statusLine.reasonPhrase}"
+                if (options?.ignoreSSL)
+                    builder.ignoreSSLIssues()
+
+                builder.request(Method.GET) { rep ->
+                    // executed for all successful responses:
+                    response.success = { resp, reader ->
+                        assert resp.statusLine.statusCode == 200
+                        text = reader.text
+                        logger.debug("Version Manifest: $location")
+                    }
+
+                    response.failure = { resp ->
+                        logger.error "Unexpected error: ${resp.statusLine.statusCode} : ${resp.statusLine.reasonPhrase}"
+                    }
+                }
+            } else {
+                def url = location.toURL()
+                logger.info("Version Manifest: $url")
+                text = url.text
+            }
+
+            if (!text)
+                return null
+
+
+            logger.debug("Loaded version manifest $location\n$text")
+
+            //Load manifest and append to existing set of modules
+            Map yaml = yamlLoader.load(text)
+            if (yaml.containsKey("modules")) {
+                Map modules = yaml['modules']
+                if (modules) {
+                    allModules << modules
                 }
             }
-        } else {
-            def url = location.toURL()
-            logger.info("Version Manifest: $url")
-            text = url.text
         }
 
-        if (text == null)
-            return null
-
-        logger.debug(text)
-
-        Yaml yaml = new Yaml()
-        def manifest = yaml.load(text)
-        manifest
+        return [modules: allModules]
     }
 
     def getComputedVersionManifest() {

@@ -163,7 +163,6 @@ class VersionResolverPomTest extends IntegrationSpec {
 
         '''.stripIndent()
 
-
         when:
         def result = runSuccessfully("build", "--info")
 

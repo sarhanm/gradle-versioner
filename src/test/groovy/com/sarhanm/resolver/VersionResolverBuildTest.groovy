@@ -57,7 +57,7 @@ class VersionResolverBuildTest extends IntegrationSpec {
         def result = runSuccessfully('build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
 
         then:
-
+        println result.output
         //We should inherit the version of commons-lang from the commons-configuration dependencies
         result.output.contains("commons-lang:commons-lang:2.6\n")
     }
