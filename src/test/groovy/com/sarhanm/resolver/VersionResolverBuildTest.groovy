@@ -42,7 +42,12 @@ class VersionResolverBuildTest extends IntegrationSpec {
     }
 
     def 'test version resolution'() {
-        buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
+        buildFile << DEFAULT_BUILD + """
+        versionResolver{
+            versionManifest{
+                url = file('build/versions.yaml')
+            }
+        }
         dependencies{
             compile 'commons-configuration:commons-configuration:auto'
         }
@@ -53,8 +58,14 @@ class VersionResolverBuildTest extends IntegrationSpec {
           'commons-configuration:commons-configuration': '1.10'
         """.stripIndent()
 
+        def java = file('src/main/java/Hello.java')
+        java.parentFile.mkdirs()
+        java.text = 'public class Hello{}'
+
         when:
-        def result = runSuccessfully('build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
+        def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang', '--stacktrace')
+        runner.withDebug(true)
+        def result = runner.build()
 
         then:
         println result.output

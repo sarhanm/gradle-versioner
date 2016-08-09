@@ -1,6 +1,7 @@
 package com.sarhanm.resolver
 
 import groovy.mock.interceptor.MockFor
+import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.junit.Test
@@ -28,7 +29,13 @@ class VersionResolveViaManifestTest {
         detailsMock.demand.getRequested(1) { params -> selectorMock.proxyInstance() }
 
         def details = detailsMock.proxyInstance()
-        def resolver = new VersionResolverInternal(null, options)
+
+        def projectMock = new MockFor(Project)
+        projectMock.demand.file{ param -> param.endsWith('src/test/resources/versions.yaml') ? file : null }
+        projectMock.ignore.getParent(){}
+        projectMock.ignore.getConfigurations(){}
+
+        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options)
         def ver = resolver.resolveVersionFromManifest(details)
         assert ver == "1.0-SNAPSHOT"
 
@@ -48,7 +55,12 @@ class VersionResolveViaManifestTest {
         def detailsMock = new MockFor(DependencyResolveDetails)
         detailsMock.demand.getRequested { params -> selectorMock.proxyInstance() }
 
-        def resolver = new VersionResolverInternal(null, options)
+        def projectMock = new MockFor(Project)
+        projectMock.demand.file{ param -> param.endsWith('src/test/resources/versions.yaml') ? file : null }
+        projectMock.ignore.getParent(){}
+        projectMock.ignore.getConfigurations(){}
+
+        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options)
         try {
             def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         } catch (IllegalStateException ex) {
@@ -73,7 +85,12 @@ class VersionResolveViaManifestTest {
         def detailsMock = new MockFor(DependencyResolveDetails)
         detailsMock.demand.getRequested { params -> selectorMock.proxyInstance() }
 
-        def resolver = new VersionResolverInternal(null, options)
+        def projectMock = new MockFor(Project)
+        projectMock.demand.file{ param -> param.endsWith('src/test/resources/versions.yaml') ? file : null }
+        projectMock.ignore.getParent(){}
+        projectMock.ignore.getConfigurations(){}
+
+        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options)
         def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         assert ver == "1.2.3"
 

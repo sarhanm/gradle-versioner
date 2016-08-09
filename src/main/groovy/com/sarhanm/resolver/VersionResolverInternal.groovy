@@ -231,8 +231,15 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
             filesToLoad.add it.toURI()
         }
 
-        if (options?.url)
-            filesToLoad.add options.url.toURI()
+        if (options?.url) {
+            def manifestFile = project.file(options.url)
+            if(!manifestFile.exists()){
+                logger.info("Not loading ${options.url} because it does not exist")
+            }
+            else {
+                filesToLoad.add manifestFile.toURI()
+            }
+        }
 
         //It is possible to use the plugin without providing a manifest.
         // For example, if you just wanted to use version ranges.
