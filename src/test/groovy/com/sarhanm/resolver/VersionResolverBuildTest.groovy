@@ -64,7 +64,6 @@ class VersionResolverBuildTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang', '--stacktrace')
-        runner.withDebug(true)
         def result = runner.build()
 
         then:
