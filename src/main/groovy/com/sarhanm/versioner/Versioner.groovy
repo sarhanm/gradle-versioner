@@ -39,6 +39,7 @@ class Versioner {
         this.logger = project?.logger
 
         this.project = project
+        this.initialVersion = project ? project.version : "1.0"
 
     }
 
@@ -51,7 +52,6 @@ class Versioner {
         // for unit testing we mock these
         def projectGroup = project ? ":${project.group}" : ''
         def projectName = project ? project.name : 'testProject'
-        def initialVersion = project ? project.version : "1.0"
 
         logger?.info "Initial project $projectName version: $initialVersion"
 
