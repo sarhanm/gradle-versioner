@@ -22,8 +22,7 @@ class Versioner {
     private cache = [:]
     private GitExecutor gitExecutor
     private EnvReader envReader
-    private String projectGroup
-    private String projectName
+    private Project project
     private String initialVersion
     private Logger logger
     def VersionerOptions options
@@ -39,10 +38,8 @@ class Versioner {
 
         this.logger = project?.logger
 
-        // for unit testing we mock these two
-        this.projectGroup = project ? project.group : 'testgroup'
-        this.projectName = project ? project.name : 'testProject'
-        this.initialVersion = project ? project.version : "1.0"
+        this.project = project
+
     }
 
     @Memoized
@@ -51,12 +48,17 @@ class Versioner {
             return initialVersion
         }
 
+        // for unit testing we mock these
+        def projectGroup = project ? ":${project.group}" : ''
+        def projectName = project ? project.name : 'testProject'
+        def initialVersion = project ? project.version : "1.0"
+
         logger?.info "Initial project $projectName version: $initialVersion"
 
         def computedVersion = getVersion()
 
         //Trying to make this log line machine readable and findable in long/huge logs
-        logger?.quiet "versioner:${projectGroup}:${projectName}=$computedVersion"
+        logger?.quiet "versioner${projectGroup}:${projectName}=$computedVersion"
 
         computedVersion
     }
