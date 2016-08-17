@@ -22,6 +22,7 @@ class Versioner {
     private cache = [:]
     private GitExecutor gitExecutor
     private EnvReader envReader
+    private String projectGroup
     private String projectName
     private String initialVersion
     private Logger logger
@@ -39,6 +40,7 @@ class Versioner {
         this.logger = project?.logger
 
         // for unit testing we mock these two
+        this.projectGroup = project ? project.group : 'testgroup'
         this.projectName = project ? project.name : 'testProject'
         this.initialVersion = project ? project.version : "1.0"
     }
@@ -54,7 +56,7 @@ class Versioner {
         def computedVersion = getVersion()
 
         //Trying to make this log line machine readable and findable in long/huge logs
-        logger?.quiet "versioner:${projectName}=$computedVersion"
+        logger?.quiet "versioner:${projectGroup}:${projectName}=$computedVersion"
 
         computedVersion
     }
@@ -187,7 +189,7 @@ class Versioner {
     def String getCommitHash() {
         def output = executeGit(CMD_COMMIT_HASH)
         if (output == null)
-            return "unkown-commit-hash"
+            return "unknown-commit-hash"
         return output.trim()
     }
 
