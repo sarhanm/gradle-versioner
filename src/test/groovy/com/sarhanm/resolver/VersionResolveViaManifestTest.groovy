@@ -35,7 +35,7 @@ class VersionResolveViaManifestTest {
         projectMock.ignore.getParent(){}
         projectMock.ignore.getConfigurations(){}
 
-        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options)
+        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options,null, null, null)
         def ver = resolver.resolveVersionFromManifest(details)
         assert ver == "1.0-SNAPSHOT"
 
@@ -60,7 +60,7 @@ class VersionResolveViaManifestTest {
         projectMock.ignore.getParent(){}
         projectMock.ignore.getConfigurations(){}
 
-        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options)
+        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options,null,null,null)
         try {
             def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         } catch (IllegalStateException ex) {
@@ -90,7 +90,7 @@ class VersionResolveViaManifestTest {
         projectMock.ignore.getParent(){}
         projectMock.ignore.getConfigurations(){}
 
-        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options)
+        def resolver = new VersionResolverInternal(projectMock.proxyInstance(), options, null, null, null)
         def ver = resolver.resolveVersionFromManifest(detailsMock.proxyInstance())
         assert ver == "1.2.3"
 

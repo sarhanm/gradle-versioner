@@ -7,10 +7,13 @@ import groovyx.net.http.Method
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
+import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Transformers
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
@@ -23,27 +26,38 @@ import org.yaml.snakeyaml.Yaml
  */
 class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
-    def logger = Logging.getLogger(VersionResolverInternal)
+    private static final Logger logger = Logging.getLogger(VersionResolverInternal)
 
     private Project project
+    private ConfigurationContainer configurations
     private VersionManifestOption options
+    private RepositoryHandler repositoryHandler
+
     private List<ResolutionAwareRepository> repositories = null
     private usedVersions
     private computedManifest
-    private siblingProject = new HashSet();
+    private Set<String> siblingProject = new HashSet();
     private Map<String, String> explicitVersion = [:]
 
-    VersionResolverInternal(Project project, VersionManifestOption manifestOptions = null) {
+    VersionResolverInternal(Project project,
+                            VersionManifestOption manifestOptions,
+                            ConfigurationContainer configurations,
+                            RepositoryHandler repositoryHandler,
+                            Set<Project> subprojects
+    ) {
+
         this.project = project
-        this.repositories = null;
+        this.configurations = configurations
+        this.repositoryHandler = repositoryHandler
         this.options = manifestOptions
+
         this.usedVersions = [:]
         this.computedManifest = ['modules': usedVersions]
 
-        project?.getParent()?.subprojects?.each { siblingProject.add("${it.group}:${it.name}"); }
+        subprojects?.each { siblingProject.add("${it.group}:${it.name}") }
 
 
-        project?.configurations?.all { Configuration c ->
+        this.configurations?.all { Configuration c ->
             c.dependencies.all { Dependency d ->
                 if (d.version != 'auto') {
                     String key = "${d.group}:${d.name}"
@@ -58,7 +72,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     @Synchronized
     List<ResolutionAwareRepository> getRepos() {
         if (repositories == null) {
-            this.repositories = CollectionUtils.collect(project.repositories, Transformers.cast(ResolutionAwareRepository.class))
+            this.repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class))
         }
 
         return this.repositories
@@ -95,7 +109,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
             def resolver = repo.createResolver()
 
             //We don't want to include the local repo if we are trying to re-fresh dependencies
-            if (this.project.gradle.startParameter.refreshDependencies && resolver.local) {
+            if (project.gradle.startParameter.refreshDependencies && resolver.local) {
                 return
             }
 
@@ -104,7 +118,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                 // Gradle 3.0+ changed the name of DefaultDependencyMetaData (the casing of "data").
                 // Loading the class dynamically depending on the version of gradle.
                 Class clazz
-                if (project.getGradle().getGradleVersion().startsWith("2"))
+                if (project.gradle.getGradleVersion().startsWith("2"))
                     clazz = this.class.classLoader.loadClass("org.gradle.internal.component.model.DefaultDependencyMetaData")
                 else
                     clazz = this.class.classLoader.loadClass("org.gradle.internal.component.model.DefaultDependencyMetadata")
@@ -216,7 +230,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     @Memoized
     @Synchronized
     private List<File> resolveManifestConfiguration() {
-        def versionManifest = project?.configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
+        def versionManifest = configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
         def resolved = versionManifest?.resolve()
         resolved && !resolved.empty ? new ArrayList<>(resolved) : null
     }
@@ -234,10 +248,9 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         if (options?.url) {
             logger.info("Resolving ${options.url}")
             def manifestFile = project.file(options.url)
-            if(!manifestFile.exists()){
+            if (!manifestFile.exists()) {
                 logger.info("Not loading ${options.url} because it does not exist")
-            }
-            else {
+            } else {
                 logger.info("Loading ${manifestFile.toURI()}")
                 filesToLoad.add manifestFile.toURI()
             }
