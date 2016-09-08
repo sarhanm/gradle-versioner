@@ -247,12 +247,17 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
         if (options?.url) {
             logger.info("Resolving ${options.url}")
-            def manifestFile = project.file(options.url)
-            if (!manifestFile.exists()) {
-                logger.info("Not loading ${options.url} because it does not exist")
+
+            if (options.url.startsWith("http")) {
+                filesToLoad.add options.url.toURI()
             } else {
-                logger.info("Loading ${manifestFile.toURI()}")
-                filesToLoad.add manifestFile.toURI()
+                def manifestFile = project.file(options.url)
+                if (!manifestFile.exists()) {
+                    logger.info("Not loading ${options.url} because it does not exist")
+                } else {
+                    logger.info("Loading ${manifestFile.toURI()}")
+                    filesToLoad.add manifestFile.toURI()
+                }
             }
         }
 

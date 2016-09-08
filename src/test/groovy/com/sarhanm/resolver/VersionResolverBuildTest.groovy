@@ -72,6 +72,32 @@ class VersionResolverBuildTest extends IntegrationSpec {
         result.output.contains("commons-lang:commons-lang:2.6\n")
     }
 
+    def 'resolve via http options.url'(){
+        buildFile << DEFAULT_BUILD + """
+        versionResolver{
+            versionManifest{
+                url = 'https://raw.githubusercontent.com/sarhanm/gradle-versioner/master/src/test/resources/test-repo/test/manifest/2.0/manifest-2.0.yaml'
+            }
+        }
+        dependencies{
+            compile 'commons-configuration:commons-configuration:auto'
+        }
+        """.stripIndent()
+
+        def java = file('src/main/java/Hello.java')
+        java.parentFile.mkdirs()
+        java.text = 'public class Hello{}'
+
+        when:
+        def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration', '--stacktrace')
+        def result = runner.build()
+
+        then:
+        println result.output
+        //We should inherit the version of commons-lang from the commons-configuration dependencies
+        result.output.contains("commons-configuration:commons-configuration:auto -> 1.9\n")
+    }
+
     def 'resolve release platform override of transitive dependency'() {
         buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
         dependencies{
