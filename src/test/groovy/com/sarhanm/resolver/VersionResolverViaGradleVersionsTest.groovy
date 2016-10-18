@@ -190,34 +190,6 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
     }
 
-    def 'resolve using versioner dynamic version with gradle 2.13'() {
-        buildFile << """
-        plugins{
-            id 'com.sarhanm.version-resolver'
-        }
-        apply plugin: 'java'
-        apply plugin: 'maven'
-
-        dependencies{
-            compile 'test:test-jar:1.n.n.master+'
-        }
-
-        repositories{
-            maven{ url file('build/.m2/repository').path }
-        }
-
-        """.stripIndent()
-
-        when:
-        def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'test:test-jar')
-        runner.withDebug(true)
-        runner.withGradleVersion(alternateGradleVersion)
-        def result = runner.build()
-
-        then:
-        result.output ==~ /(?ms).*test:test-jar:1.n.n.master\+ -> 1.0.2.master.abcdef\n.*/
-    }
-
     def 'resolve using versioner dynamic version'() {
         buildFile << """
         plugins{
@@ -238,6 +210,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'test:test-jar')
+        runner.withDebug(true)
         runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
