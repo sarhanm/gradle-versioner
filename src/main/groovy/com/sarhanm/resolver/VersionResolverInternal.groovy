@@ -10,8 +10,11 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -116,15 +119,30 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
             def data
             try {
                 // Gradle 3.0+ changed the name of DefaultDependencyMetaData (the casing of "data").
+                // and also created a maven and ivy version.
                 // Loading the class dynamically depending on the version of gradle.
-                Class clazz
-                if (project.gradle.getGradleVersion().startsWith("2"))
-                    clazz = this.class.classLoader.loadClass("org.gradle.internal.component.model.DefaultDependencyMetaData")
-                else
-                    clazz = this.class.classLoader.loadClass("org.gradle.internal.component.model.DefaultDependencyMetadata")
 
-                def versionIdentifier = new DefaultModuleVersionIdentifier(group, name, version)
-                data = clazz.newInstance([versionIdentifier] as Object[])
+                if (project.gradle.getGradleVersion().startsWith("2")) {
+                    Class clazz = this.class.classLoader.loadClass("org.gradle.internal.component.model.DefaultDependencyMetaData")
+                    def versionIdentifier = new DefaultModuleVersionIdentifier(group, name, version)
+                    data = clazz.newInstance([versionIdentifier] as Object[])
+                }
+                else {
+                    if(repo instanceof MavenArtifactRepository) {
+                        Class clazz = this.class.classLoader.loadClass("org.gradle.internal.component.external.model.MavenDependencyMetadata")
+                        Class mavenScope = this.class.classLoader.loadClass('org.gradle.internal.component.external.descriptor.MavenScope')
+                        def versionSelector = new DefaultModuleVersionSelector(group, name, version)
+                        def constructor = clazz.getDeclaredConstructor(mavenScope, boolean, ModuleVersionSelector, List, List)
+                        data = constructor.newInstance(mavenScope.enumConstants[0], false, versionSelector, [], [])
+                    }
+                    else{
+                        //Class clazz = this.class.classLoader.loadClass("org.gradle.internal.component.external.model.IvyDependencyMetadata")
+                        //TODO: Deal with ivy repo here
+                        logger.warn "Was not able to resolve $version because we are attempting to load from an ivy repo which is not supported by this plugin."
+                        return
+                    }
+                }
+
             } catch (Exception e) {
                 logger.error "Was not able to create new instance. Not resolving version $version", e
                 return

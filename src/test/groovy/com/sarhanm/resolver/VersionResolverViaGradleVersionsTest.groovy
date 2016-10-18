@@ -7,9 +7,9 @@ import org.apache.commons.io.FileUtils
  * @author Mohammad Sarhan ( mohammad@ ) 
  * @date 2/11/16
  */
-class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
+abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
-    static ALTERNATE_GRADLE_VERSION = '3.0-rc-1'
+    abstract getAlternateGradleVersion()
 
     static DEFAULT_BUILD = '''
     plugins{
@@ -58,7 +58,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -82,7 +82,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -109,7 +109,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -135,7 +135,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -157,7 +157,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -181,7 +181,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
         when:
 
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -190,7 +190,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
     }
 
-    def 'resolve using versioner dynamic version with gradel 2.13'() {
+    def 'resolve using versioner dynamic version with gradle 2.13'() {
         buildFile << """
         plugins{
             id 'com.sarhanm.version-resolver'
@@ -210,7 +210,8 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'test:test-jar')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withDebug(true)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -237,7 +238,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'test:test-jar')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -253,7 +254,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -299,7 +300,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when: 'Generate the pom file'
         def runner = getRunner(true, 'build', 'generatePomFileForMavenTestPubPublication')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then: 'Pom should include resolved versions'
@@ -338,7 +339,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'generatePomFileForMavenTestPubPublication')
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
@@ -391,7 +392,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, "build", "--info")
-        runner.withGradleVersion(ALTERNATE_GRADLE_VERSION)
+        runner.withGradleVersion(alternateGradleVersion)
         def result = runner.build()
 
         then:
