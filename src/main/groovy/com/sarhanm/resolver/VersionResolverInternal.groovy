@@ -102,12 +102,22 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
     }
 
+    /**
+     * Look at all defined repositories and retrieved the greatest version that
+     * adheres to the given range. We exclude the local repo if the user has
+     * asked to "refresh-dependencies"
+     * @param group
+     * @param name
+     * @param version
+     * @param range
+     * @return The latest version for the given range for all defined repos.
+     */
     def resolveVersion(String group, String name, String version, VersionRange range) {
         logger.debug "$group:$name:$version is a valid range. Trying to resolve"
-        def versionToReturn = version
+
+        Version latestVersion = null
+
         getRepos().each { repo ->
-            if (versionToReturn != version)
-                return
 
             def resolver = repo.createResolver()
 
@@ -153,7 +163,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
             resolver.remoteAccess.listModuleVersions(data, result)
 
             if (result.hasResult()) {
-                def latestVersion = null
+
                 result.versions.each {
 
                     //NOTE: we could use the sort and other cool grooyish methods,
@@ -166,15 +176,16 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                             latestVersion = current
                     }
                 }
-
-                if (latestVersion) {
-                    logger.info "$group:$name using version $latestVersion.version"
-                    versionToReturn = latestVersion.version
-                }
             }
         }
 
-        return versionToReturn
+        if(latestVersion == null) {
+            logger.info "Could not resolve version $version for $group:$name"
+            return version
+        }
+
+        logger.info "$group:$name using version $latestVersion.version"
+        return latestVersion.version
     }
 
     def String resolveVersionFromManifest(DependencyResolveDetails details) {
