@@ -160,7 +160,11 @@ class Versioner {
      * @return Branch name without the remote and/or origin prefix
      */
     def String getBranch() {
-        def branchName = getBranchNameRaw()
+        // Use the environment override value first if supplied.
+        def branchName = envReader.getEnvValue('GIT_BRANCH_OVERRIDE')
+        if (branchName == null || branchName.allWhitespace) {
+            branchName = getBranchNameRaw()
+        }
 
         def prefixes = ['remote/', 'origin/']
         for (String prefix : prefixes) {

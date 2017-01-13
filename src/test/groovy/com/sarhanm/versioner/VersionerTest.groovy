@@ -15,21 +15,19 @@ class VersionerTest {
     @Test
     void testBranchCleansing() {
         def gitMock = new MockFor(GitExecutor.class)
-        def envMock = new MockFor(EnvReader.class)
 
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
         gitMock.demand.execute { params -> "origin/master" }
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "master", versioner.getCleansedBranchName()
         }
 
         gitMock.demand.execute { params -> "remote/origin/master" }
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "master", versioner.getCleansedBranchName()
         }
 
@@ -37,14 +35,14 @@ class VersionerTest {
         gitMock.demand.execute { params -> "remote/origin/feature/my-branch" }
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "feature-my-branch", versioner.getCleansedBranchName()
         }
 
         gitMock.demand.execute { params -> "remote/origin/feature/my_branch" }
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "feature-my_branch", versioner.getCleansedBranchName()
         }
 
@@ -52,24 +50,20 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "feature-my-branch", versioner.getCleansedBranchName()
         }
     }
 
     @Test
     void testGitCache() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
         gitMock.demand.execute(1) { params -> "foobar" }
 
         gitMock.use {
             //Ensure that we are caching properly
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             def result = versioner.getCleansedBranchName()
             def result2 = versioner.getCleansedBranchName()
             assertEquals result, result2
@@ -78,17 +72,13 @@ class VersionerTest {
 
     @Test
     void testSolidVersionCheck() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute { params -> "origin/master" }
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertTrue versioner.useSolidMajorMinorVersion()
         }
 
@@ -96,7 +86,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertFalse versioner.useSolidMajorMinorVersion()
         }
 
@@ -104,7 +94,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertTrue versioner.useSolidMajorMinorVersion()
         }
 
@@ -112,17 +102,13 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertTrue versioner.useSolidMajorMinorVersion()
         }
     }
 
     @Test
     void testHotfixVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(6) { params ->
@@ -138,7 +124,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "2.3.3.4.hotfix-foobar.adbcdf", versioner.getVersion()
             assertEquals "2.3", versioner.getMajorMinor()
             assertEquals "3.4", versioner.getVersionPoint()
@@ -154,10 +140,6 @@ class VersionerTest {
 
     @Test
     void testReleaseHotfixVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(6) { params ->
@@ -173,7 +155,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "2.3.3.4.release-hotfix.adbcdf", versioner.getVersion()
             assertEquals 4, versioner.getHotfixNumber()
         }
@@ -182,10 +164,6 @@ class VersionerTest {
 
     @Test
     void testHotfixBranchWithHotfixDisabledVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(4) { params ->
@@ -198,7 +176,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             versioner.options.disableHotfixVersioning = true
             assertEquals "3.9.5.hotfix-foobar.adbcdff", versioner.getVersion()
         }
@@ -206,10 +184,6 @@ class VersionerTest {
 
     @Test
     void testFeatureVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(3) { params ->
@@ -221,7 +195,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             versioner.options.omitBranchMetadataOnSolidBranch = true
             assertEquals "0.0.9.feature-foobar.adbcdf", versioner.getVersion()
         }
@@ -229,10 +203,6 @@ class VersionerTest {
 
     @Test
     void testVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(4) { params ->
@@ -246,17 +216,38 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "3.9.1005.master.adbcdff", versioner.getVersion()
         }
     }
 
     @Test
-    void testToStringVersion() {
+    void testVersionFromEnv() {
+        // Should use branch in environment variable, not value returned from git
         def envMock = new MockFor(EnvReader.class)
-
+        envMock.demand.getEnvValue(0..20) { params -> 'origin/foo' }
         envMock.demand.getBranchNameFromEnv(1) { params -> null }
 
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(0..4) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v3.9"
+            else if (params == Versioner.CMD_POINT) "1005"
+            else if (params == Versioner.CMD_COMMIT_HASH) "adbcdff"
+            else if (params == Versioner.CMD_POINT_SOLID_BRANCH) "v3.9-1005-gcd4c01a"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            assertEquals "0.0.1005.foo.adbcdff", versioner.getVersion()
+        }
+    }
+
+    @Test
+    void testToStringVersion() {
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(4) { params ->
@@ -270,7 +261,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "3.9.1005.master.adbcdff", versioner.toString()
         }
     }
@@ -286,10 +277,6 @@ class VersionerTest {
 
     @Test
     void testPlusVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(4) { params ->
@@ -303,17 +290,13 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "3.9.1005.master.adbcdff-hi", versioner + "-hi"
         }
     }
 
     @Test
     void testSnapshotVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -326,7 +309,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             versioner.options.snapshot = true
             assertEquals "2.3.master-SNAPSHOT", versioner.getVersion()
         }
@@ -334,10 +317,6 @@ class VersionerTest {
 
     @Test
     void testSnapshotSolidVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -350,7 +329,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             versioner.options.snapshot = true
             versioner.options.omitBranchMetadata = true
             assertEquals "2.3-SNAPSHOT", versioner.getVersion()
@@ -359,10 +338,6 @@ class VersionerTest {
 
     @Test
     void testSolidDigitOnlyVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -375,7 +350,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             versioner.options.omitBranchMetadata = true
             assertEquals "2.3.4", versioner.getVersion()
         }
@@ -383,10 +358,6 @@ class VersionerTest {
 
     @Test
     void testSolidDigitOnlyOnSolidBranchVersion() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -399,7 +370,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             versioner.options.omitBranchMetadataOnSolidBranch = true
             assertEquals "2.3.4", versioner.getVersion()
         }
@@ -407,10 +378,6 @@ class VersionerTest {
 
     @Test
     public void testNullPointDescribeTag() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -424,7 +391,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "2.3.4.master.adbcdf", versioner.getVersion()
         }
     }
@@ -432,10 +399,6 @@ class VersionerTest {
 
     @Test
     public void testIncompletePointDescribeTag() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -449,17 +412,13 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "2.3.4.master.adbcdf", versioner.getVersion()
         }
     }
 
     @Test
     public void testIncompletePointDescribeTag2() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -473,17 +432,13 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "2.3.4.master.adbcdf", versioner.getVersion()
         }
     }
 
     @Test
     public void testEmptyPointDescribeTag() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..5) { params ->
@@ -497,17 +452,13 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             assertEquals "2.3.4.master.adbcdf", versioner.getVersion()
         }
     }
 
     @Test
     public void testGitData() {
-        def envMock = new MockFor(EnvReader.class)
-
-        envMock.demand.getBranchNameFromEnv(1) { params -> null }
-
         def gitMock = new MockFor(GitExecutor.class)
 
         gitMock.demand.execute(1..6) { params ->
@@ -522,7 +473,7 @@ class VersionerTest {
 
         gitMock.use {
             def versioner = new Versioner()
-            versioner.envReader = envMock.proxyInstance()
+            versioner.envReader = mockDefaultEnvironment()
             GitData gitData = new GitData(versioner)
 
             assertEquals gitData.version, versioner.getVersion()
@@ -534,6 +485,14 @@ class VersionerTest {
             assertEquals gitData.commit, versioner.commitHash
             assertEquals gitData.totalCommits, Integer.parseInt(versioner.getTotalCommits())
         }
+    }
+
+    private EnvReader mockDefaultEnvironment() {
+        // Mock the environment variables to return null so that the git calls are exectued.
+        def envMock = new MockFor(EnvReader.class)
+        envMock.demand.getEnvValue(0..20) { params -> null }
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
+        return envMock.proxyInstance()
     }
 
 }

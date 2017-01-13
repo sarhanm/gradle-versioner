@@ -5,17 +5,21 @@ package com.sarhanm.versioner
  * @author mohammad sarhan
  */
 class EnvReader {
+    def getEnvValue(env) {
+        return System.env[env]
+    }
+
     def getBranchNameFromEnv(branchNameEnv = null) {
-        if (branchNameEnv && System.env[branchNameEnv] != null) {
-            return System.env[branchNameEnv]
+        if (branchNameEnv && getEnvValue(branchNameEnv) != null) {
+            return getEnvValue(branchNameEnv)
         }
 
         //Travis branch name
         //Jenkins branch name
         //Jenkins pipeline branch name
         for (env in ['TRAVIS_BRANCH', 'GIT_BRANCH', 'BRANCH_NAME']) {
-            if (System.env[env] != null) {
-                return System.env[env]
+            if (getEnvValue(env) != null) {
+                return getEnvValue(env)
             }
         }
     }
