@@ -208,9 +208,12 @@ class Versioner {
 
         //We now have the digit parts of the version.
         //The rest is adding git meta-data depending on user-options
-
-        if (!omitBranchMetadata())
-            version += ".$cleansedBranchName"
+        if (!omitBranchMetadata()) {
+            if (options.branchNameDisplayOverride)
+                version += ".${options.branchNameDisplayOverride(this)}"
+            else
+                version += ".$cleansedBranchName"
+        }
 
         if (options.snapshot)
             version += "-SNAPSHOT"

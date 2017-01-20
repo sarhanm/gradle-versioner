@@ -536,4 +536,28 @@ class VersionerTest {
         }
     }
 
+    @Test
+    void testVersionWithBranchDisplayOverride() {
+        def envMock = new MockFor(EnvReader.class)
+
+        envMock.demand.getBranchNameFromEnv(1) { params -> null }
+
+        def gitMock = new MockFor(GitExecutor.class)
+
+        gitMock.demand.execute(4) { params ->
+            if (params == Versioner.CMD_BRANCH) "master"
+            else if (params == Versioner.CMD_MAJOR_MINOR) "v3.9"
+            else if (params == Versioner.CMD_POINT) "1005"
+            else if (params == Versioner.CMD_COMMIT_HASH) "adbcdff"
+            else if (params == Versioner.CMD_POINT_SOLID_BRANCH) "v3.9-1005-gcd4c01a"
+            else throw new Exception("Unaccounted for method call")
+        }
+
+        gitMock.use {
+            def versioner = new Versioner()
+            versioner.envReader = envMock.proxyInstance()
+            versioner.options.branchNameDisplayOverride = {v -> "override"}
+            assertEquals "3.9.1005.override.adbcdff", versioner.getVersion()
+        }
+    }
 }
