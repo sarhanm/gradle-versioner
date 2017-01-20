@@ -153,7 +153,7 @@ class Versioner {
      * @return Branch name without slashes or dots
      */
     def String getCleansedBranchName() {
-        return branch.replaceAll('/', '-').replaceAll('\\.', '-')
+        return cleanseBranchName(branch)
     }
 
     /**
@@ -161,14 +161,7 @@ class Versioner {
      */
     def String getBranch() {
         def branchName = getBranchNameRaw()
-
-        def prefixes = ['remote/', 'origin/']
-        for (String prefix : prefixes) {
-            if (branchName.startsWith(prefix))
-                branchName = branchName.substring(prefix.length())
-        }
-
-        branchName
+        return removeBranchPrefixes(branchName)
     }
 
     @Memoized
@@ -209,10 +202,13 @@ class Versioner {
         //We now have the digit parts of the version.
         //The rest is adding git meta-data depending on user-options
         if (!omitBranchMetadata()) {
-            if (options.branchNameDisplayOverride)
-                version += ".${options.branchNameDisplayOverride(this)}"
-            else
-                version += ".$cleansedBranchName"
+            def displayBranchName = cleansedBranchName
+            if (options.branchNameDisplayOverride) {
+                def overrideName = options.branchNameDisplayOverride(this)
+                displayBranchName = (overrideName ? overrideName : cleansedBranchName)
+            }
+
+            version += ".$displayBranchName"
         }
 
         if (options.snapshot)
@@ -242,6 +238,20 @@ class Versioner {
 
         //Default to zero
         return output == null ? "0" : output.trim()
+    }
+
+    def removeBranchPrefixes(branchName) {
+        def prefixes = ['remote/', 'origin/']
+        for (String prefix : prefixes) {
+            if (branchName.startsWith(prefix))
+                branchName = branchName.substring(prefix.length())
+        }
+
+        return branchName
+    }
+
+    def cleanseBranchName(branchName) {
+        return branchName.replaceAll('/', '-').replaceAll('\\.', '-')
     }
 
     /** ****************/
