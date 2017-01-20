@@ -48,6 +48,12 @@ class VersionerOptions {
     def String branchEnvName = null
 
     /**
+     * A closure that can return a custom value for the branch name displayed in the version string.  The current Versioner
+     * instance will be passed as a parameter to the closure when called.
+     */
+    def Closure<String> branchNameDisplayOverride = null
+
+    /**
      * The regex used to match branch names which determines which branches get
      * a non-zero major and minor versions
      */
