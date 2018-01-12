@@ -9,7 +9,7 @@ import org.apache.commons.io.FileUtils
  */
 abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
-    abstract getAlternateGradleVersion()
+    abstract String getAlternateGradleVersion()
 
     static DEFAULT_BUILD = '''
     plugins{
@@ -239,14 +239,18 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         given: 'Apply the nebula-resolved-dependencies'
 
-        buildFile << '''
+        def nebulaVersion = '4.8.1'
+        if(getAlternateGradleVersion().startsWith("4"))
+            nebulaVersion = '5.1.0'
+
+        buildFile << """
         buildscript {
           repositories { jcenter() }
           dependencies {
-            classpath 'com.netflix.nebula:nebula-publishing-plugin:4.8.1'
+            classpath 'com.netflix.nebula:nebula-publishing-plugin:$nebulaVersion'
           }
         }
-        '''.stripIndent() + DEFAULT_BUILD + DEFAULT_MANIFEST + '''
+        """.stripIndent() + DEFAULT_BUILD + DEFAULT_MANIFEST + '''
 
         apply plugin: 'maven-publish'
 
@@ -372,6 +376,46 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
         true
 
     }
+
+    def 'test multi project build'(){
+        buildFile << DEFAULT_BUILD
+
+        def baseScript = """
+        apply plugin: 'com.sarhanm.version-resolver'
+        apply plugin: 'java'
+
+        """.stripIndent()
+
+        addSubproject("api", baseScript)
+        addSubproject("shared", baseScript)
+
+        addSubproject("impl", baseScript + """
+
+        dependencies{
+            compile project(':api')
+            compile project(':shared')
+        }
+        """.stripIndent())
+
+        addSubproject("job", baseScript + """
+
+        dependencies{
+            compile project(':api')
+            //Shared should come along for the ride as a project dependency
+            runtime project(':impl')
+        }
+        """.stripIndent())
+
+        when:
+        def runner = getRunner(true, "clean","build", "--info")
+        runner.withGradleVersion(alternateGradleVersion)
+        def result = runner.build()
+
+        then:
+        true
+
+    }
+
 
     def setupLocalepo() {
         def repo = file('build/.m2/repository')

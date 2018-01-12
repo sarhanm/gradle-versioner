@@ -14,6 +14,8 @@ class IntegrationSpec extends Specification {
     @TempDirectory(clean = false)
     protected File projectDir
 
+    static String lineEnd = System.getProperty('line.separator')
+
     protected File settingsFile
     protected File buildFile
 
@@ -83,5 +85,20 @@ class IntegrationSpec extends Specification {
      */
     protected File file(String path) {
         new File(projectDir, path)
+    }
+
+    protected File addSubproject(String name) {
+        settingsFile << "include '${name}'${lineEnd}"
+        def dir = new File(projectDir, name)
+        dir.mkdirs()
+
+        dir
+    }
+
+    protected File addSubproject(String name, String gradleContents) {
+        def dir = addSubproject(name)
+        new File(dir, 'build.gradle').text = gradleContents
+
+        dir
     }
 }

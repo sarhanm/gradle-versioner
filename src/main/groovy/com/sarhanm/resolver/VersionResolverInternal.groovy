@@ -11,6 +11,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -19,6 +20,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Transformers
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.util.CollectionUtils
 import org.yaml.snakeyaml.Yaml
@@ -45,6 +47,15 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     VersionResolverInternal(Project project,
                             VersionManifestOption manifestOptions,
                             ConfigurationContainer configurations,
+                            RepositoryHandler repositoryHandler
+    ){
+        this(project, manifestOptions, configurations, repositoryHandler, null);
+    }
+
+
+    VersionResolverInternal(Project project,
+                            VersionManifestOption manifestOptions,
+                            ConfigurationContainer configurations,
                             RepositoryHandler repositoryHandler,
                             Set<Project> subprojects
     ) {
@@ -56,9 +67,6 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
         this.usedVersions = [:]
         this.computedManifest = ['modules': usedVersions]
-
-        subprojects?.each { siblingProject.add("${it.group}:${it.name}") }
-
 
         this.configurations?.all { Configuration c ->
             c.dependencies.all { Dependency d ->
@@ -141,8 +149,20 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                     if(repo instanceof MavenArtifactRepository) {
                         Class clazz = this.class.classLoader.loadClass("org.gradle.internal.component.external.model.MavenDependencyMetadata")
                         Class mavenScope = this.class.classLoader.loadClass('org.gradle.internal.component.external.descriptor.MavenScope')
-                        def versionSelector = new DefaultModuleVersionSelector(group, name, version)
-                        def constructor = clazz.getDeclaredConstructor(mavenScope, boolean, ModuleVersionSelector, List, List)
+                        def versionSelector
+                        def constructor
+                        if(project.gradle.getGradleVersion().startsWith("3")) {
+                            versionSelector = new DefaultModuleVersionSelector(group, name, version)
+                            constructor = clazz.getDeclaredConstructor(mavenScope, boolean, ModuleVersionSelector, List, List)
+                        } else{ //version 4.x and beyond
+
+                            constructor = clazz.getDeclaredConstructor(mavenScope, boolean, ModuleComponentSelector, List, List)
+                            Class versionConstrainClass = this.class.classLoader.loadClass("org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint")
+                            def versionConstrainConstructor = versionConstrainClass.getConstructor(String)
+                            def immutableVersionConstraint = versionConstrainConstructor.newInstance(version)
+                            versionSelector = new DefaultModuleComponentSelector(group, name, immutableVersionConstraint)
+                        }
+
                         data = constructor.newInstance(mavenScope.enumConstants[0], false, versionSelector, [], [])
                     }
                     else{
@@ -194,9 +214,11 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         def group = requested.group
         def name = requested.name
 
-        // Siblings are always versioned together.
-        if (siblingProject.contains("${group}:${name}"))
+        // Local projects are always versioned together.
+        if (isLocalProject(group,name)) {
+            logger.debug("$group:$name is a sibling project. skipping version resolution")
             return ver
+        }
 
         //it actually doesn't matter if the version is 'auto' or otherwise
         // as long as its a version found in our version manifest
@@ -354,6 +376,10 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
     def getComputedVersionManifest() {
         return computedManifest
+    }
+
+    boolean isLocalProject(group, name){
+        project.getRootProject().getAllprojects().find { p -> p.group == group && p.name == name }
     }
 
 }

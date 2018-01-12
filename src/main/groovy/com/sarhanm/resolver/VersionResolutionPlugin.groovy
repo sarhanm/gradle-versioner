@@ -27,8 +27,7 @@ class VersionResolutionPlugin implements Plugin<Project> {
         def resolver = new VersionResolverInternal( project,
                 versionManifestOpt,
                 project.configurations,
-                project.repositories,
-                project.parent?.subprojects)
+                project.repositories)
 
         project.extensions.add("versionResolverAction", new VersionResolver(manifestVersionConfig, resolver))
         //add our resolver to existing configuration and any new configuration added

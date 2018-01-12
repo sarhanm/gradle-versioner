@@ -7,7 +7,7 @@ package com.sarhanm.resolver
 class VersionResolverViaGradle3 extends  VersionResolverViaGradleVersionsTest {
 
     @Override
-    def getAlternateGradleVersion() {
+    def String getAlternateGradleVersion() {
         return '3.1'
     }
 }
