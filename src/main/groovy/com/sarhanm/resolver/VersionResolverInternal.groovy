@@ -10,18 +10,11 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
-import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Transformers
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.util.CollectionUtils
 import org.yaml.snakeyaml.Yaml
 
@@ -41,14 +34,13 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     private List<ResolutionAwareRepository> repositories = null
     private usedVersions
     private computedManifest
-    private Set<String> siblingProject = new HashSet();
     private Map<String, String> explicitVersion = [:]
 
     VersionResolverInternal(Project project,
                             VersionManifestOption manifestOptions,
                             ConfigurationContainer configurations,
                             RepositoryHandler repositoryHandler
-    ){
+    ) {
         this(project, manifestOptions, configurations, repositoryHandler, null);
     }
 
@@ -73,7 +65,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                 if (d.version != 'auto') {
                     String key = "${d.group}:${d.name}"
                     explicitVersion[key] = d.version
-                    logger.debug "Adding {} to explicit versions", key
+                    logger.quiet "Adding {} to explicit versions with version {}", key, d.version
                 }
             }
         }
@@ -93,11 +85,13 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     void execute(DependencyResolveDetails details) {
 
         def requested = details.requested
-        def requestedVersion = resolveVersionFromManifest(details)
+        def requestedVersion = resolveVersion(requested.group, requested.name, requested.version)
         def range = new VersionRange(requestedVersion)
 
         if (range.valid) {
-            requestedVersion = resolveVersion(requested.group, requested.name, requestedVersion, range)
+            //replace with a range query so the componentselection logic kicks in.
+            //TODO: restrict range to so we don't have to validate every possible version.
+            requestedVersion = '+'
         } else {
             logger.debug("$requested is not a valid range ($requestedVersion). Not trying to resolve")
         }
@@ -107,117 +101,14 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
             usedVersions["${details.requested.group}:${details.requested.name}"] = requestedVersion
             logger.debug("Resolved version of ${details.requested.group}:${details.requested.name} to $requestedVersion")
         }
-
     }
 
-    /**
-     * Look at all defined repositories and retrieved the greatest version that
-     * adheres to the given range. We exclude the local repo if the user has
-     * asked to "refresh-dependencies"
-     * @param group
-     * @param name
-     * @param version
-     * @param range
-     * @return The latest version for the given range for all defined repos.
-     */
-    def resolveVersion(String group, String name, String version, VersionRange range) {
-        logger.debug "$group:$name:$version is a valid range. Trying to resolve"
-
-        Version latestVersion = null
-
-        getRepos().each { repo ->
-
-            def resolver = repo.createResolver()
-
-            //We don't want to include the local repo if we are trying to re-fresh dependencies
-            if (project.gradle.startParameter.refreshDependencies && resolver.local) {
-                return
-            }
-
-            def data
-            try {
-                // Gradle 3.0+ changed the name of DefaultDependencyMetaData (the casing of "data").
-                // and also created a maven and ivy version.
-                // Loading the class dynamically depending on the version of gradle.
-
-                if (project.gradle.getGradleVersion().startsWith("2")) {
-                    Class clazz = this.class.classLoader.loadClass("org.gradle.internal.component.model.DefaultDependencyMetaData")
-                    def versionIdentifier = new DefaultModuleVersionIdentifier(group, name, version)
-                    data = clazz.newInstance([versionIdentifier] as Object[])
-                }
-                else {
-                    if(repo instanceof MavenArtifactRepository) {
-                        Class clazz = this.class.classLoader.loadClass("org.gradle.internal.component.external.model.MavenDependencyMetadata")
-                        Class mavenScope = this.class.classLoader.loadClass('org.gradle.internal.component.external.descriptor.MavenScope')
-                        def versionSelector
-                        def constructor
-                        if(project.gradle.getGradleVersion().startsWith("3")) {
-                            versionSelector = new DefaultModuleVersionSelector(group, name, version)
-                            constructor = clazz.getDeclaredConstructor(mavenScope, boolean, ModuleVersionSelector, List, List)
-                        } else{ //version 4.x and beyond
-
-                            constructor = clazz.getDeclaredConstructor(mavenScope, boolean, ModuleComponentSelector, List, List)
-                            Class versionConstrainClass = this.class.classLoader.loadClass("org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint")
-                            def versionConstrainConstructor = versionConstrainClass.getConstructor(String)
-                            def immutableVersionConstraint = versionConstrainConstructor.newInstance(version)
-                            versionSelector = new DefaultModuleComponentSelector(group, name, immutableVersionConstraint)
-                        }
-
-                        data = constructor.newInstance(mavenScope.enumConstants[0], false, versionSelector, [], [])
-                    }
-                    else{
-                        //Class clazz = this.class.classLoader.loadClass("org.gradle.internal.component.external.model.IvyDependencyMetadata")
-                        //TODO: Deal with ivy repo here
-                        logger.warn "Was not able to resolve $version because we are attempting to load from an ivy repo which is not supported by this plugin."
-                        return
-                    }
-                }
-
-            } catch (Exception e) {
-                logger.error "Was not able to create new instance. Not resolving version $version", e
-                return
-            }
-
-            def result = new DefaultBuildableModuleVersionListingResolveResult()
-
-            resolver.remoteAccess.listModuleVersions(data, result)
-
-            if (result.hasResult()) {
-
-                result.versions.each {
-
-                    //NOTE: we could use the sort and other cool grooyish methods,
-                    // but this should be a lot more efficient as a single pass
-                    if (range.contains(it)) {
-                        def current = new Version(it)
-                        if (latestVersion == null)
-                            latestVersion = current
-                        else if (latestVersion.compareTo(current) < 0)
-                            latestVersion = current
-                    }
-                }
-            }
-        }
-
-        if(latestVersion == null) {
-            logger.info "Could not resolve version $version for $group:$name"
-            return version
-        }
-
-        logger.info "$group:$name using version $latestVersion.version"
-        return latestVersion.version
-    }
-
-    def String resolveVersionFromManifest(DependencyResolveDetails details) {
-        def requested = details.requested
-        def ver = requested.version
-        def group = requested.group
-        def name = requested.name
+    String resolveVersion(String group, String name, String requestedVersion) {
 
         // Local projects are always versioned together.
-        if (isLocalProject(group,name)) {
-            logger.debug("$group:$name is a sibling project. skipping version resolution")
-            return ver
+        if (isLocalProject(group, name)) {
+            logger.quiet("$group:$name is a sibling project. skipping version resolution")
+            return requestedVersion
         }
 
         //it actually doesn't matter if the version is 'auto' or otherwise
@@ -235,23 +126,23 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
             } else {
                 //resolve via the manifest. We don't care that auto is being used or not,
                 //we always resolve to what is in the manifest
-                ver = getVersionFromManifest(group, name)
-                if (!ver)
+                requestedVersion = getVersionFromManifest(group, name)
+                if (!requestedVersion)
                     throw new RuntimeException("Could not resolve manifest location (${resolveManifestConfiguration()} , ${options?.url})")
 
             }
         }
 
-        if (ver == "auto")
-            throw new IllegalStateException("[com.sarhanm.vesion-resolver]$group:$name:$ver is " +
+        if (requestedVersion == "auto")
+            throw new IllegalStateException("[com.sarhanm.vesion-resolver]$group:$name:$requestedVersion is " +
                     "marked for resolution but no version is defined in version manifest")
 
         //return the default version if not resolved by above
-        return ver
+        return requestedVersion
     }
 
     @Memoized
-    private String getVersionFromManifest(group, name) {
+    String getVersionFromManifest(group, name) {
         def manifest = getManifest()
         def key = "${group}:${name}"
 
@@ -262,15 +153,15 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     }
 
     @Memoized
-    private boolean isVersionInManifest(group, name) {
+    boolean isVersionInManifest(group, name) {
         return getVersionFromManifest(group, name) != null
     }
 
-    private boolean isExplicitlyVersioned(String group, String name) {
+    boolean isExplicitlyVersioned(String group, String name) {
         return getExplicitVersionFromProject(group, name) != null
     }
 
-    private String getExplicitVersionFromProject(String group, String name) {
+    String getExplicitVersionFromProject(String group, String name) {
         return explicitVersion.get("$group:$name" as String)
     }
 
@@ -378,7 +269,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         return computedManifest
     }
 
-    boolean isLocalProject(group, name){
+    boolean isLocalProject(group, name) {
         project.getRootProject().getAllprojects().find { p -> p.group == group && p.name == name }
     }
 

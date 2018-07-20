@@ -33,11 +33,11 @@ dependencies {
         exclude module: 'nekohtml'
     }
 
-    testCompile ('org.spockframework:spock-core:1.0-groovy-2.4'){
+    testCompile ('org.spockframework:spock-core:1.1-groovy-2.4'){
         exclude group: 'org.codehaus.groovy'
     }
 
-    testCompile 'com.netflix.nebula:nebula-test:4.2.2'
+    testCompile 'com.netflix.nebula:nebula-test:6.7.1'
 }
 
 jacocoTestReport {
@@ -48,7 +48,7 @@ jacocoTestReport {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
+    gradleVersion = '4.9'
 }
 
 task sourcesJar(type: Jar) {

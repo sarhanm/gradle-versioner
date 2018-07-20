@@ -1,13 +1,9 @@
 package com.sarhanm.resolver
 
-import groovy.mock.interceptor.MockFor
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.junit.Test
 import spock.lang.Specification
-
-import static org.junit.Assert.fail
 
 /**
  *
@@ -39,7 +35,7 @@ class VersionResolveViaManifestTest extends Specification{
 
         when:
         def resolver = new VersionResolverInternal(project, options,null, null)
-        def ver = resolver.resolveVersionFromManifest(details)
+        def ver = resolver.resolveVersion(details.requested.group, details.requested.name,details.requested.version)
 
         then:
         ver == "1.0-SNAPSHOT"
@@ -69,7 +65,7 @@ class VersionResolveViaManifestTest extends Specification{
 
         when:
         def resolver = new VersionResolverInternal(project, options,null,null)
-        def ver = resolver.resolveVersionFromManifest(details)
+        def ver = resolver.resolveVersion(details.requested.group, details.requested.name,details.requested.version)
 
         then:
         thrown(IllegalStateException)
@@ -98,7 +94,7 @@ class VersionResolveViaManifestTest extends Specification{
 
         when:
         def resolver = new VersionResolverInternal(project, options,null,null)
-        def ver = resolver.resolveVersionFromManifest(details)
+        def ver = resolver.resolveVersion(details.requested.group, details.requested.name,details.requested.version)
 
         then:
         ver == "1.2.3"

@@ -48,7 +48,7 @@ class VersionResolverPomTest extends IntegrationSpec {
         buildscript {
           repositories { jcenter() }
           dependencies {
-            classpath 'com.netflix.nebula:nebula-publishing-plugin:4.8.1'
+            classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
           }
         }
         '''.stripIndent() + DEFAULT_BUILD + DEFAULT_MANIFEST + '''

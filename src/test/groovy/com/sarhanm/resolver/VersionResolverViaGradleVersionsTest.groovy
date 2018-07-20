@@ -7,9 +7,10 @@ import org.apache.commons.io.FileUtils
  * @author Mohammad Sarhan ( mohammad@ ) 
  * @date 2/11/16
  */
-abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
+class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
-    abstract String getAlternateGradleVersion()
+    //Child classes can override this method to re-run all tests with a different version of gradle.
+    String getAlternateGradleVersion(){ null }
 
     static DEFAULT_BUILD = '''
     plugins{
@@ -56,9 +57,13 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
           'commons-configuration:commons-configuration': '1.10'
         """.stripIndent()
 
+        def java = file('src/main/java/Hello.java')
+        java.parentFile.mkdirs()
+        java.text = 'public class Hello{}'
+
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -82,7 +87,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -92,7 +97,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
     }
 
-    def 'resolve hard pinned version in build file'() {
+    def 'resolve via gradle resolution of transitive dep'() {
         buildFile << DEFAULT_BUILD + DEFAULT_MANIFEST + """
 
         dependencies{
@@ -109,13 +114,15 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
         // This is the default gradle strategy. Gradle picks the newest and since we don't have a pinned version
         // in the manifest, the latest version is selected.
         result.output.contains 'commons-lang:commons-lang:2.6\n'
+
+        result.output.contains 'commons-configuration:commons-configuration:1.10\n'
 
     }
 
@@ -135,7 +142,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-lang:commons-lang')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -157,7 +164,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -181,7 +188,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
         when:
 
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -211,12 +218,43 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'test:test-jar')
         runner.withDebug(true)
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
         result.output ==~ /(?ms).*test:test-jar:1.n.n.master\+ -> 1.0.2.master.abcdef\n.*/
     }
+
+    def 'resolve using versioner dynamic version with auto'() {
+        buildFile << """
+        plugins{
+            id 'com.sarhanm.version-resolver'
+        }
+        apply plugin: 'java'
+        apply plugin: 'maven'
+
+        dependencies{
+            compile 'test:test-jar:auto'
+        }
+
+        repositories{
+            maven{ url file('build/.m2/repository').path }
+        }
+
+        """.stripIndent() + DEFAULT_MANIFEST
+
+        versionsFile.text = """
+        modules:
+          'test:test-jar': '1.n.n.master+'
+        """.stripIndent()
+
+        when:
+        def result = runSuccessfully('build', 'dependencyInsight', '--dependency', 'test:test-jar')
+
+        then:
+        result.output ==~ /(?ms).*test:test-jar:auto -> 1.0.2.master.abcdef\n.*/
+    }
+
 
     def 'resolve without manifest'() {
         buildFile << DEFAULT_BUILD + """
@@ -227,7 +265,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -239,9 +277,15 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         given: 'Apply the nebula-resolved-dependencies'
 
-        def nebulaVersion = '4.8.1'
-        if(getAlternateGradleVersion().startsWith("4"))
+        def nebulaVersion
+        def gradleVersion = getAlternateGradleVersion()
+
+        if(!gradleVersion)
+            nebulaVersion = '+'
+        else if(gradleVersion.startsWith('4'))
             nebulaVersion = '5.1.0'
+        else
+            nebulaVersion = '4.8.1'
 
         buildFile << """
         buildscript {
@@ -277,7 +321,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when: 'Generate the pom file'
         def runner = getRunner(true, 'build', 'generatePomFileForMavenTestPubPublication')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then: 'Pom should include resolved versions'
@@ -316,7 +360,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, 'build', 'generatePomFileForMavenTestPubPublication')
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -369,7 +413,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, "build", "--info")
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -408,7 +452,7 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         when:
         def runner = getRunner(true, "clean","build", "--info")
-        runner.withGradleVersion(alternateGradleVersion)
+        setupGradlRunVersion(runner)
         def result = runner.build()
 
         then:
@@ -416,10 +460,42 @@ abstract class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
     }
 
+    def 'resolve via http options.url'(){
+        buildFile << DEFAULT_BUILD + """
+        versionResolver{
+            versionManifest{
+                url = 'https://raw.githubusercontent.com/sarhanm/gradle-versioner/master/src/test/resources/test-repo/test/manifest/2.0/manifest-2.0.yaml'
+            }
+        }
+        dependencies{
+            compile 'commons-configuration:commons-configuration:auto'
+        }
+        """.stripIndent()
+
+        def java = file('src/main/java/Hello.java')
+        java.parentFile.mkdirs()
+        java.text = 'public class Hello{}'
+
+        when:
+        def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration', '--stacktrace')
+        setupGradlRunVersion(runner)
+        def result = runner.build()
+
+        then:
+        println result.output
+        //We should inherit the version of commons-lang from the commons-configuration dependencies
+        result.output.contains("commons-configuration:commons-configuration:auto -> 1.9\n")
+    }
 
     def setupLocalepo() {
         def repo = file('build/.m2/repository')
         repo.mkdirs()
         FileUtils.copyDirectory(new File("src/test/resources/test-repo"), repo)
+    }
+
+    def setupGradlRunVersion(runner){
+        def ver = alternateGradleVersion
+        if(ver)
+            runner.withGradleVersion(alternateGradleVersion)
     }
 }

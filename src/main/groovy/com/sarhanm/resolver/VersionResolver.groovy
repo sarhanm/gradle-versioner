@@ -36,5 +36,10 @@ class VersionResolver implements Action<DependencyResolveDetails> {
             versionResolverInternal.execute(dependencyResolveDetails)
     }
 
+    String resolveVersionFromManifest(group, name){
+        //exposes a way to get resolved versions from the manifest.
+        versionResolverInternal.getVersionFromManifest(group,name)
+    }
+
 
 }
