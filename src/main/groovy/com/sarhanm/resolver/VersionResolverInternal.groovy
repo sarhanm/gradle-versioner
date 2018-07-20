@@ -65,7 +65,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                 if (d.version != 'auto') {
                     String key = "${d.group}:${d.name}"
                     explicitVersion[key] = d.version
-                    logger.quiet "Adding {} to explicit versions with version {}", key, d.version
+                    logger.debug "Adding {} to explicit versions with version {}", key, d.version
                 }
             }
         }
@@ -107,7 +107,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
         // Local projects are always versioned together.
         if (isLocalProject(group, name)) {
-            logger.quiet("$group:$name is a sibling project. skipping version resolution")
+            logger.debug("$group:$name is a sibling project. skipping version resolution")
             return requestedVersion
         }
 
