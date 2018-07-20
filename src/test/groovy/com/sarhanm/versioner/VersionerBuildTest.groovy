@@ -235,6 +235,25 @@ class VersionerBuildTest extends IntegrationSpec {
 
     }
 
+    def 'test lightweight tags'(){
+        buildFile << DEFAULT_BUILD
+
+        setupGitRepo()
+        execute('git tag v7.13')
+
+        when:
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
+        def version = new Version(buildVersion)
+
+        then:
+        version.valid
+        assert version.major == '7'
+        assert version.minor == '13'
+        assert version.point == '1' //number of commits from last tag
+        assert version.branch == 'master'
+    }
+
 
     private String getVersionFromOutput(String output) {
         def r = output.find(VERSIONER_PATTERN)
