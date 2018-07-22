@@ -2,8 +2,6 @@ package com.sarhanm.resolver
 
 import groovy.transform.Memoized
 import groovy.transform.Synchronized
-import groovyx.net.http.HTTPBuilder
-import groovyx.net.http.Method
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -11,12 +9,8 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.internal.Transformers
-import org.gradle.util.CollectionUtils
-import org.yaml.snakeyaml.Yaml
 
 /**
  *
@@ -29,12 +23,11 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     private Project project
     private ConfigurationContainer configurations
     private VersionManifestOption options
-    private RepositoryHandler repositoryHandler
 
-    private List<ResolutionAwareRepository> repositories = null
     private usedVersions
     private computedManifest
     private Map<String, String> explicitVersion = [:]
+    private VersionManifestResolver manifestResolver
 
     VersionResolverInternal(Project project,
                             VersionManifestOption manifestOptions,
@@ -54,11 +47,12 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
         this.project = project
         this.configurations = configurations
-        this.repositoryHandler = repositoryHandler
         this.options = manifestOptions
 
         this.usedVersions = [:]
         this.computedManifest = ['modules': usedVersions]
+
+        manifestResolver = new VersionManifestResolver(options)
 
         this.configurations?.all { Configuration c ->
             c.dependencies.all { Dependency d ->
@@ -69,16 +63,6 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                 }
             }
         }
-
-    }
-
-    @Synchronized
-    List<ResolutionAwareRepository> getRepos() {
-        if (repositories == null) {
-            this.repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class))
-        }
-
-        return this.repositories
     }
 
     @Override
@@ -128,7 +112,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
                 //we always resolve to what is in the manifest
                 requestedVersion = getVersionFromManifest(group, name)
                 if (!requestedVersion)
-                    throw new RuntimeException("Could not resolve manifest location (${resolveManifestConfiguration()} , ${options?.url})")
+                    throw new RuntimeException("Could not resolve manifest locations (${manifestLocations})")
 
             }
         }
@@ -141,18 +125,11 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         return requestedVersion
     }
 
-    @Memoized
     String getVersionFromManifest(group, name) {
-        def manifest = getManifest()
-        def key = "${group}:${name}"
-
-        if (!manifest)
-            return null
-
-        return manifest.modules[key] ?: null
+        VersionManifest manifest = resolveManifest()
+        return manifest.getVersion(group, name)
     }
 
-    @Memoized
     boolean isVersionInManifest(group, name) {
         return getVersionFromManifest(group, name) != null
     }
@@ -165,106 +142,6 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         return explicitVersion.get("$group:$name" as String)
     }
 
-    /**
-     * Defer resolving the configuration until as late as we can.
-     * @return
-     */
-    @Memoized
-    @Synchronized
-    private List<File> resolveManifestConfiguration() {
-        def versionManifest = configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
-        def resolved = versionManifest?.resolve()
-        resolved && !resolved.empty ? new ArrayList<>(resolved) : null
-    }
-
-    @Synchronized
-    @Memoized
-    private getManifest() {
-
-        def filesToLoad = []
-
-        resolveManifestConfiguration()?.each {
-            filesToLoad.add it.toURI()
-        }
-
-        if (options?.url) {
-            logger.info("Resolving ${options.url}")
-
-            if (options.url.startsWith("http")) {
-                filesToLoad.add options.url.toURI()
-            } else {
-                def manifestFile = project.file(options.url)
-                if (!manifestFile.exists()) {
-                    logger.info("Not loading ${options.url} because it does not exist")
-                } else {
-                    logger.info("Loading ${manifestFile.toURI()}")
-                    filesToLoad.add manifestFile.toURI()
-                }
-            }
-        }
-
-        //It is possible to use the plugin without providing a manifest.
-        // For example, if you just wanted to use version ranges.
-        if (filesToLoad.isEmpty())
-            return
-
-
-        def allModules = [:]
-
-        Yaml yamlLoader = new Yaml()
-
-        filesToLoad.each { URI location ->
-
-            def text = null
-
-            if (location.scheme.startsWith("http")) {
-
-                def builder = new HTTPBuilder(location)
-
-                if (options?.username != null) {
-                    builder.auth.basic options.username, options.password
-                }
-
-                if (options?.ignoreSSL)
-                    builder.ignoreSSLIssues()
-
-                builder.request(Method.GET) { rep ->
-                    // executed for all successful responses:
-                    response.success = { resp, reader ->
-                        assert resp.statusLine.statusCode == 200
-                        text = reader.text
-                        logger.debug("Version Manifest: $location")
-                    }
-
-                    response.failure = { resp ->
-                        logger.error "Unexpected error: ${resp.statusLine.statusCode} : ${resp.statusLine.reasonPhrase}"
-                    }
-                }
-            } else {
-                def url = location.toURL()
-                logger.info("Version Manifest: $url")
-                text = url.text
-            }
-
-            if (!text)
-                return null
-
-
-            logger.debug("Loaded version manifest $location\n$text")
-
-            //Load manifest and append to existing set of modules
-            Map yaml = yamlLoader.load(text)
-            if (yaml.containsKey("modules")) {
-                Map modules = yaml['modules']
-                if (modules) {
-                    allModules << modules
-                }
-            }
-        }
-
-        return [modules: allModules]
-    }
-
     def getComputedVersionManifest() {
         return computedManifest
     }
@@ -273,5 +150,52 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         project.getRootProject().getAllprojects().find { p -> p.group == group && p.name == name }
     }
 
+    @Memoized
+    private VersionManifest resolveManifest(){
+        return manifestResolver.getVersionManifest(getManifestLocations())
+    }
+
+    /**
+     * Gets the locations of the defined manifests.
+     * Locations can be defined in a configuration dependency
+     * or via the VersionResolverOptions
+     * @return
+     */
+    @Memoized
+    private List<URI> getManifestLocations() {
+        List<URI> locations = []
+
+        resolveManifestConfiguration()?.each {
+            locations.add it.toURI()
+        }
+
+        if (options?.url) {
+            logger.info("Resolving ${options.url}")
+
+            if (options.url.startsWith("http")) {
+                locations.add options.url.toURI()
+            } else {
+                def manifestFile = project.file(options.url)
+                if (!manifestFile.exists()) {
+                    logger.info("Not loading ${options.url} because it does not exist")
+                } else {
+                    logger.info("Loading ${manifestFile.toURI()}")
+                    locations.add manifestFile.toURI()
+                }
+            }
+        }
+
+        locations
+    }
+
+    /**
+     * Resolves the versionManifest into a list of files.
+     * @return List of files that contain versioning information
+     */
+    private List<File> resolveManifestConfiguration() {
+        def versionManifest = configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
+        def resolved = versionManifest?.resolve()
+        resolved && !resolved.empty ? new ArrayList<>(resolved) : null
+    }
 }
 

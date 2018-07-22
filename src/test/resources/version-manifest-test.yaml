@@ -1,0 +1,6 @@
+#A manifest that lists all the possible
+version: 1.0
+modules:
+  'com.coinfling:auth-service-api': 1.0-SNAPSHOT
+  'com.foobar:foobar-service-impl': 1.n.n.master+
+  'com.foobar:jonny-service-impl': 1.3.4.master.abcfb498

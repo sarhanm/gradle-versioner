@@ -28,10 +28,9 @@ dependencies {
     compile localGroovy()
     compile gradleTestKit()
 
-    compile 'org.yaml:snakeyaml:1.17'
-    compile ('org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'){
-        exclude module: 'nekohtml'
-    }
+    compile 'org.yaml:snakeyaml:1.21'
+    compile 'io.github.http-builder-ng:http-builder-ng-apache:1.0.3'
+
 
     testCompile ('org.spockframework:spock-core:1.1-groovy-2.4'){
         exclude group: 'org.codehaus.groovy'

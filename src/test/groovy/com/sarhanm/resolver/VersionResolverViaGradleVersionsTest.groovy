@@ -479,10 +479,11 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
         when:
         def runner = getRunner(true, 'build', 'dependencyInsight', '--dependency', 'commons-configuration:commons-configuration', '--stacktrace')
         setupGradlRunVersion(runner)
+        runner.forwardOutput()
+        runner.withDebug(true)
         def result = runner.build()
 
         then:
-        println result.output
         //We should inherit the version of commons-lang from the commons-configuration dependencies
         result.output.contains("commons-configuration:commons-configuration:auto -> 1.9\n")
     }
