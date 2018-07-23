@@ -6,16 +6,10 @@ package com.sarhanm.resolver
 import com.sarhanm.resolver.loaders.PomLoader
 import com.sarhanm.resolver.loaders.VersionManifestLoader
 import com.sarhanm.resolver.loaders.YamlLoader
-import groovy.transform.Memoized
-import groovy.transform.Synchronized
 import groovyx.net.http.ApacheHttpBuilder
-import groovyx.net.http.FromServer
-import groovyx.net.http.HttpBuilder
 import groovyx.net.http.util.SslUtils
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.impl.client.HttpClientBuilder
-import org.gradle.api.Project
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 

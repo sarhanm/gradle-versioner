@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.foobar</groupId>
+        <artifactId>release-manifest-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <groupId>com.foobar</groupId>
+    <artifactId>release-platform</artifactId>
+    <version>98.3.2</version>
+    <packaging>pom</packaging>
+    <name>Test Manifest</name>
+    <prerequisites>
+        <maven>2.0.10</maven>
+    </prerequisites>
+    <dependencyManagement>
+
+    </dependencyManagement>
+</project>
