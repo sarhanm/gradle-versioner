@@ -10,6 +10,7 @@ import groovyx.net.http.ApacheHttpBuilder
 import groovyx.net.http.util.SslUtils
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.impl.client.HttpClientBuilder
+import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
@@ -22,14 +23,16 @@ class VersionManifestResolver {
 
     private static final Logger logger = Logging.getLogger(VersionManifestResolver)
 
+    private Project project
     private VersionManifestOption options
     private Map<String, VersionManifestLoader> fileResolvers
 
-    VersionManifestResolver(VersionManifestOption options) {
+    VersionManifestResolver(Project project, VersionManifestOption options) {
+        this.project = project
         this.options = options
 
         fileResolvers = new HashMap<>()
-        fileResolvers['pom'] = new PomLoader()
+        fileResolvers['pom'] = new PomLoader(project)
         fileResolvers['yaml'] = new YamlLoader()
     }
 
@@ -52,6 +55,8 @@ class VersionManifestResolver {
             String manifestData = null
             if (location.scheme.startsWith("http")) {
 
+                logger.debug("Remote Version Manifest: {}", location)
+
                 def builder = ApacheHttpBuilder.configure {
                     request.uri = location
 
@@ -71,7 +76,7 @@ class VersionManifestResolver {
                         SslUtils.ignoreSslIssues execution
                 }
 
-                manifestData = builder.get{
+                manifestData = builder.get {
 
                     response.failure {
                         logger.error("FAILED to retrieve version manifest from {}", location)
@@ -87,7 +92,7 @@ class VersionManifestResolver {
 
             if (manifestData) {
 
-                logger.trace("Loaded version manifest {}\n{}", location, manifestData)
+                logger.debug("Loaded version manifest {}\n{}", location, manifestData)
 
                 //load from pom or yaml loader
                 def manifest = fileResolvers[ext].load(manifestData)
@@ -101,6 +106,4 @@ class VersionManifestResolver {
 
         return allVersions
     }
-
-
 }

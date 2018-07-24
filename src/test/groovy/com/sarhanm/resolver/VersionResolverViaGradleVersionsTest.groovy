@@ -373,7 +373,7 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
         dep.version.text() == 'auto'
     }
 
-    def 'test via versionManifest configuration'() {
+    def 'test via versionManifest configuration and dep management'() {
         buildFile << '''
         buildscript {
           repositories { jcenter() }
@@ -418,6 +418,38 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
 
         then:
         true
+
+    }
+
+    def 'test via versionManifest configuration'() {
+        buildFile << '''       
+        plugins{
+            id 'com.sarhanm.version-resolver'
+        }
+
+        apply plugin: 'java'
+
+        dependencies{
+            versionManifest 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE@pom'
+            compile 'commons-beanutils:commons-beanutils:auto'
+        }
+
+        repositories{
+            System.setProperty('maven.repo.local', file('build/.m2/repository').path)
+            mavenLocal()
+            jcenter()
+        }
+
+        '''.stripIndent()
+
+
+        when:
+        def runner = getRunner(true, 'build', '--debug','dependencyInsight', '--dependency', 'commons-beanutils:commons-beanutils')
+        setupGradlRunVersion(runner)
+        def result = runner.build()
+
+        then:
+        result.output.contains "commons-beanutils:commons-beanutils:1.9.3"
 
     }
 

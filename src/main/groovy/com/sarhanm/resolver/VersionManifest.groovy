@@ -42,5 +42,9 @@ class VersionManifest {
         return key
     }
 
+    int size() {
+        return versions.size()
+    }
+
 
 }

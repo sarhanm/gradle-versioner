@@ -15,7 +15,7 @@ class VersionManifestResolverTest extends Specification{
 
         List<URI> locations = [new URI('https://raw.githubusercontent.com/sarhanm/gradle-versioner/master/src/test/resources/test-repo/test/manifest/2.0/manifest-2.0.yaml')]
 
-        VersionManifestResolver resolver = new VersionManifestResolver(null)
+        VersionManifestResolver resolver = new VersionManifestResolver(null,null)
 
         when:
         def manifest = resolver.getVersionManifest(locations)

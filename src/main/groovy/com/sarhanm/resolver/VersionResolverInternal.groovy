@@ -52,7 +52,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         this.usedVersions = [:]
         this.computedManifest = ['modules': usedVersions]
 
-        manifestResolver = new VersionManifestResolver(options)
+        manifestResolver = new VersionManifestResolver(project, options)
 
         this.configurations?.all { Configuration c ->
             c.dependencies.all { Dependency d ->
@@ -151,7 +151,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     }
 
     @Memoized
-    private VersionManifest resolveManifest(){
+    private VersionManifest resolveManifest() {
         return manifestResolver.getVersionManifest(getManifestLocations())
     }
 
@@ -195,6 +195,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
     private List<File> resolveManifestConfiguration() {
         def versionManifest = configurations?.findByName(VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION)
         def resolved = versionManifest?.resolve()
+        logger.debug("resolved manifests: {}", resolved)
         resolved && !resolved.empty ? new ArrayList<>(resolved) : null
     }
 }

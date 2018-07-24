@@ -17,11 +17,11 @@ class PomLoaderTest extends Specification {
         def text = file.text
 
         when:
-        def loader = new PomLoader()
+        def loader = new PomLoader(null)
         def manifest = loader.load(text)
 
         then:
-        manifest.getVersion("com.foobar", "jonny") == '1.3.64'
+        manifest.getVersion("com.foobar", "jonny") == '1.3.66'
         manifest.getVersion("com.foobar", "grace") == '777.2.64.master.abcfsd453'
 
         ! manifest.getVersion("com.foobar", "fisher")
@@ -32,7 +32,7 @@ class PomLoaderTest extends Specification {
         def text = file.text
 
         when:
-        def loader = new PomLoader()
+        def loader = new PomLoader(null)
         def manifest = loader.load(text)
 
         then:
@@ -44,10 +44,31 @@ class PomLoaderTest extends Specification {
         def text = file.text
 
         when:
-        def loader = new PomLoader()
+        def loader = new PomLoader(null)
         def manifest = loader.load(text)
 
         then:
         manifest
+    }
+
+    def 'test load with parent pom'(){
+        def file = new File("src/test/resources/bom-with-parent.pom")
+        def text = file.text
+
+        def loader = Spy(PomLoader){
+            resolveFile('com.foobar','release-platform','1.0-SNAPSHOT') >>  new File("src/test/resources/bom.pom")
+        }
+
+        when:
+
+        def manifest = loader.load(text)
+
+        then:
+
+        manifest.getVersion("com.foobar", "jonny") == '1.3.64-override-property'
+        manifest.getVersion("com.foobar", "grace") == 'override-dependency-node-version'
+        manifest.getVersion("com.foobar", "bob") == '1.666.64'
+
+        manifest.size() == 4
     }
 }
