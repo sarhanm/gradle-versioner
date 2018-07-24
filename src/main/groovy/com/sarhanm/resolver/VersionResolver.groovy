@@ -40,4 +40,8 @@ class VersionResolver implements Action<DependencyResolveDetails> {
         //exposes a way to get resolved versions from the manifest.
         versionResolverInternal.getVersionFromManifest(group,name)
     }
+
+    def getComputedVersionManifest() {
+        return versionResolverInternal.getComputedVersionManifest()
+    }
 }

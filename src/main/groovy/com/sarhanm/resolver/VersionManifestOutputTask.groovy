@@ -11,7 +11,7 @@ import org.yaml.snakeyaml.Yaml
  * @author mohammad sarhan
  */
 class VersionManifestOutputTask extends DefaultTask {
-    def VersionResolverInternal versionResolver
+    def VersionResolver versionResolver
 
     @OutputFile
     def File outputFile

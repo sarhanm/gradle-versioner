@@ -48,9 +48,9 @@ class VersionManifestResolver {
 
         locations.each { URI location ->
 
-            def ext = "yaml"
+            def parser = "yaml"
             if (location.path.endsWith(".pom"))
-                ext = "pom"
+                parser = "pom"
 
             String manifestData = null
             if (location.scheme.startsWith("http")) {
@@ -95,7 +95,7 @@ class VersionManifestResolver {
                 logger.debug("Loaded version manifest {}\n{}", location, manifestData)
 
                 //load from pom or yaml loader
-                def manifest = fileResolvers[ext].load(manifestData)
+                def manifest = fileResolvers[parser].load(manifestData)
 
                 if (manifest)
                     allVersions.addVersions(manifest)

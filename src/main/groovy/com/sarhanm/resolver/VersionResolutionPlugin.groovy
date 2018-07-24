@@ -20,29 +20,14 @@ class VersionResolutionPlugin implements Plugin<Project> {
         def versionResolverOpt = project.extensions.create(VERSION_RESOLVER, VersionResolverOptions)
         def versionManifestOpt = versionResolverOpt.extensions.create(VERSION_MANIFEST_EXT, VersionManifestOption)
 
-        def manifestVersionConfig = project.configurations.maybeCreate(VERSION_MANIFEST_CONFIGURATION)
-
-
-        def resolver = new VersionResolverInternal( project,
+        VersionResolver resolver = VersionResolutionConfigurer.configureVersionResolution(project,
                 versionManifestOpt,
                 project.configurations,
                 project.repositories)
 
         // Allow programatic access to the resolver so users can add to
         // additional plugins (ie springs dependency management plugin)
-        project.extensions.add("versionResolverAction", new VersionResolver(manifestVersionConfig, resolver))
-        //add our resolver to existing configuration and any new configuration added
-        // in the future.
-        project.configurations.all { Configuration c ->
-
-            //We don't want to participate in the versionManifest configuration
-            // resolution. otherwise we'll get a recursive execution
-            // since that configuration is used (and resolved) in VersionResolver.
-            if (c.name != VERSION_MANIFEST_CONFIGURATION) {
-                c.resolutionStrategy.eachDependency(resolver)
-                c.resolutionStrategy.componentSelection.all(new VersionRangeResolver(resolver))
-            }
-        }
+        project.extensions.add("versionResolverAction", resolver)
 
         project.tasks.create(name: 'outputVersionManifest',
                 description: 'Outputs the version manifest of all the resolved versions.',
