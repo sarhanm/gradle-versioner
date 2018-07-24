@@ -46,7 +46,7 @@ jacocoTestReport {
     }
 }
 
-task wrapper(type: Wrapper) {
+wrapper{
     gradleVersion = '4.9'
 }
 
@@ -88,7 +88,7 @@ bintray {
         issueTrackerUrl = 'https://github.com/sarhanm/gradle-versioner/issues'
         vcsUrl = 'https://github.com/sarhanm/gradle-versioner.git'
         licenses = ['MIT']
-        labels = ['gradle', 'git', 'versioning', 'auto version' ,'versioner', 'version']
+        labels = ['gradle', 'git', 'versioning', 'auto version' ,'versioner', 'version', 'versioning']
         publicDownloadNumbers = true
         version {
             name = project.version
@@ -104,7 +104,7 @@ pluginBundle {
   vcsUrl = 'https://github.com/sarhanm/gradle-versioner'
 
   description = 'Set the project version based on git metadata and number of commits.'
-  tags = ['versioner', 'version', 'git', 'scm', 'commits', 'auto version', 'auto', 'gradle']
+  tags = ['versioner', 'version', 'versioning', 'git', 'scm', 'commits', 'auto version', 'auto', 'gradle']
 
   plugins {
 
@@ -126,18 +126,18 @@ pluginBundle {
  * Grabs the values from the env and writes to a file that can be used by the plugin-publish plugin.
  * This allows us define the API and secrete securely in travis-ci
  */
-task setupPluginUpload << {
+task setupPluginUpload {
+    doLast {
+        def key = System.env.gradlePublishKey
+        def secret = System.env.gradlePublishSecret
 
-    def key=System.env.gradlePublishKey
-    def secret = System.env.gradlePublishSecret
+        if (!key || !secret) {
+            throw new RuntimeException("gradlePublishKey and/or gradlePublishSecret are not defined environment variables")
+        }
 
-    if( !key || !secret)
-    {
-        throw new RuntimeException("gradlePublishKey and/or gradlePublishSecret are not defined environment variables")
+        System.properties.setProperty("gradle.publish.key", key)
+        System.properties.setProperty("gradle.publish.secret", secret)
     }
-
-    System.properties.setProperty("gradle.publish.key", key)
-    System.properties.setProperty("gradle.publish.secret", secret)
 }
 
 tasks.publishPlugins.dependsOn tasks.setupPluginUpload

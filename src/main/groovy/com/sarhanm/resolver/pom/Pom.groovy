@@ -36,7 +36,7 @@ class Pom {
 
         //We get all the dependencies in the right order first and then we resolve versions on
         // purpose to make sure that property overrides in child poms are honored.
-        
+
         allDependencies?.each { dep ->
             def ver = interpolateVersion(dep.getVersion())
             if (ver)
