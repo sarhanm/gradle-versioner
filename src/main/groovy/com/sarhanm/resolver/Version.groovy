@@ -68,4 +68,13 @@ class Version implements Comparable<Version> {
     def boolean equals(Object obj) {
         this.compareTo(obj) == 0
     }
+
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Version{");
+        sb.append("version=").append(version);
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -57,6 +57,33 @@ class VersionRange {
         return true
     }
 
+    /**
+     *
+     * @return a dynamic version consisting of only the numeric 3 part version
+     */
+    String getNumericDynamicVersion() {
+        //We will return the lower version
+        if (!valid)
+            return null
+
+        String num = ""
+        if (lower.major && lower.major != "n")
+            num += lower.major
+        else
+            return "+"
+
+        if (lower.minor && lower.minor != "n")
+            num += ".${lower.minor}"
+        else
+            return "${num}+"
+
+        if (lower.point && lower.point != "n")
+            num += ".${lower.point}"
+
+        return "${num}+"
+
+    }
+
     private parseRange(def Matcher matcher) {
 
         lowerInclusive = matcher[0][1] == "["
@@ -65,6 +92,8 @@ class VersionRange {
         def String lowerString = matcher[0][2]
         def String upperString = matcher[0][9]
 
+        //".a" is a dummy commit hash to make the version valid.
+        // It doesn't matter what the commit hash is, since this is a version range object.
         if (lowerString) {
             lower = new Version(lowerString + ".a")
         }
@@ -79,5 +108,17 @@ class VersionRange {
     private parseDynamicVersion(def Matcher matcher) {
         lower = new Version(matcher[0][1] + ".a")
         lowerInclusive = true
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("VersionRange{");
+        sb.append("lower=").append(lower);
+        sb.append(", upper=").append(upper);
+        sb.append(", lowerInclusive=").append(lowerInclusive);
+        sb.append(", upperInclusive=").append(upperInclusive);
+        sb.append(", valid=").append(valid);
+        sb.append('}');
+        return sb.toString();
     }
 }

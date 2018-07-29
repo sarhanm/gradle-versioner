@@ -74,8 +74,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
 
         if (range.valid) {
             //replace with a range query so the componentselection logic kicks in.
-            //TODO: restrict range to so we don't have to validate every possible version.
-            requestedVersion = '+'
+            requestedVersion = range.numericDynamicVersion
         } else {
             logger.debug("$requested is not a valid range ($requestedVersion). Not trying to resolve")
         }

@@ -23,12 +23,10 @@ class VersionManifestResolver {
 
     private static final Logger logger = Logging.getLogger(VersionManifestResolver)
 
-    private Project project
     private VersionManifestOption options
     private Map<String, VersionManifestLoader> fileResolvers
 
     VersionManifestResolver(Project project, VersionManifestOption options) {
-        this.project = project
         this.options = options
 
         fileResolvers = new HashMap<>()
