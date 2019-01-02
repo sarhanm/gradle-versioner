@@ -47,7 +47,7 @@ jacocoTestReport {
 }
 
 wrapper{
-    gradleVersion = '4.9'
+    gradleVersion = '5.1'
 }
 
 task sourcesJar(type: Jar) {

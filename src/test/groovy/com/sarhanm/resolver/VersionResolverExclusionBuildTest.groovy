@@ -60,8 +60,10 @@ class VersionResolverExclusionBuildTest extends IntegrationSpec {
 
     static PRINT_CLASSPAHT_TASK = '''
 
-    task printClasspath << {
+    task printClasspath {
+        doLast{
             println "Classpath: " + configurations.runtime.asPath
+        }
     }
     '''.stripIndent()
 
