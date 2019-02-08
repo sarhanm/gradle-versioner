@@ -117,7 +117,7 @@ class VersionResolverInternal implements Action<DependencyResolveDetails> {
         }
 
         if (requestedVersion == "auto")
-            throw new IllegalStateException("[com.sarhanm.vesion-resolver]$group:$name:$requestedVersion is " +
+            throw new IllegalStateException("[com.sarhanm.version-resolver]$group:$name:$requestedVersion is " +
                     "marked for resolution but no version is defined in version manifest")
 
         //return the default version if not resolved by above
