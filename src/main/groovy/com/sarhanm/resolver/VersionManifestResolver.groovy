@@ -65,8 +65,9 @@ class VersionManifestResolver {
                     //Set timeout values
                     client.clientCustomizer { HttpClientBuilder builder ->
                         RequestConfig.Builder requestBuilder = RequestConfig.custom()
-                        requestBuilder.connectTimeout = 10000
-                        requestBuilder.connectionRequestTimeout = 10000
+                        requestBuilder.connectTimeout = 60000
+                        requestBuilder.connectionRequestTimeout = 60000
+                        requestBuilder.socketTimeout = 60000
                         builder.defaultRequestConfig = requestBuilder.build()
                     }
 
