@@ -36,7 +36,7 @@ dependencies {
         exclude group: 'org.codehaus.groovy'
     }
 
-    testCompile 'com.netflix.nebula:nebula-test:6.7.1'
+    testCompile 'com.netflix.nebula:nebula-test:7.2.3'
 }
 
 jacocoTestReport {
