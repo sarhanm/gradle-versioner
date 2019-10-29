@@ -3,6 +3,7 @@ package com.sarhanm.versioner
 import com.sarhanm.IntegrationSpec
 import com.sarhanm.resolver.Version
 import org.apache.tools.ant.types.Commandline
+import org.gradle.testkit.runner.GradleRunner
 
 /**
  * Verify versioner options get picked up.
@@ -251,6 +252,65 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.major == '7'
         assert version.minor == '13'
         assert version.point == '1' //number of commits from last tag
+        assert version.branch == 'master'
+    }
+
+    def 'test lots of commits'(){
+        buildFile << DEFAULT_BUILD
+
+        setupGitRepo()
+        execute('git tag v1.2')
+        execute('touch file.txt')
+        execute('git add .')
+        execute("git commit -am'change'")
+
+
+        execute('git checkout master')
+        (1..25).each {
+            execute('git commit -m"empty commit" --allow-empty')
+        }
+
+        execute('git checkout -b feature/otherbranch')
+        (1..100).each {
+            execute('git commit -m"empty commit" --allow-empty')
+        }
+
+        execute('git checkout -b feature/different')
+        (1..100).each {
+            execute('git commit -m"empty commit" --allow-empty')
+        }
+
+        // There are over a total of 225 commits in this test repo
+        // We are testing that a git clone of 50 from the master branch (which only has 25ish commits)
+        // will still have
+        // 1. the correct version
+        // 2. and the same version of a clone of 1000
+        execute('git checkout master')
+        execute("git clone --depth 50   file://${projectDir.absolutePath} ./shallow_50")
+        execute("git clone --depth 1000 file://${projectDir.absolutePath} ./shallow_1000")
+
+        when:
+        def shallow50Runner = GradleRunner.create()
+                .withProjectDir(new File(projectDir, "shallow_50"))
+                .withArguments("build").withPluginClasspath()
+
+        def shallow150Runner = GradleRunner.create()
+                .withProjectDir(new File(projectDir, "shallow_1000"))
+                .withArguments("build").withPluginClasspath()
+
+        def shallow50Version = getVersionFromOutput(shallow50Runner.build().output)
+        def shallow1000Version = getVersionFromOutput(shallow150Runner.build().output)
+
+        then:
+        shallow50Version == shallow1000Version
+
+        when:
+        def version = new Version(shallow50Version)
+
+        then:
+        version.valid
+        assert version.major == '1'
+        assert version.minor == '2'
         assert version.branch == 'master'
     }
 
