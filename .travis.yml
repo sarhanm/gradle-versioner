@@ -1,9 +1,8 @@
 language: groovy
 before_script: true
 script: "./travis-run.sh"
-dist: trusty
 jdk:
-- oraclejdk8
+- openjdk8
 
 # whitelist
 branches:
