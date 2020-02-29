@@ -30,7 +30,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "com.sarhanm:gradle-versioner:2.2.11"
+    classpath "com.sarhanm:gradle-versioner:3.0.15"
   }
 }
 
