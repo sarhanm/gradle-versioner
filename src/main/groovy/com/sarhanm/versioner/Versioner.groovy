@@ -9,7 +9,7 @@ import groovy.transform.Memoized
  * derived from the git repository
  */
 class Versioner {
-    static final DEFAULT_SOLID_BRANCH_REGEX = "master|.*release.*|.*hotfix.*"
+    static final DEFAULT_SOLID_BRANCH_REGEX = "master|main|.*release.*|.*hotfix.*"
     static final DEFAULT_HOTFIX_COMMON_BRANCH = "master"
 
     //Git commands also used in unit tests
