@@ -62,7 +62,16 @@ class VersionerOptions {
     /**
      * The branch name of the common hotfix branch. Its the name of the branh
      * that you fork from when you create a hotfix. Currently defaults to 'master'
+     *
+     * @deprecated use {@link #commonHotfixBranches} instead.
      */
+    @Deprecated
     def String commonHotfixBranch = Versioner.DEFAULT_HOTFIX_COMMON_BRANCH
+
+    /**
+     * The branch names of the common hotfix branches. Its the name of a branch
+     * that you fork from when you create a hotfix. Currently defaults to 'master' or 'main'
+     */
+    def String[] commonHotfixBranches = Versioner.DEFAULT_HOTFIX_COMMON_BRANCHES
 
 }

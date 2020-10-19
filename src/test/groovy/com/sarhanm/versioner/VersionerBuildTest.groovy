@@ -12,6 +12,7 @@ import org.gradle.testkit.runner.GradleRunner
 class VersionerBuildTest extends IntegrationSpec {
 
     static VERSIONER_PATTERN = ~/versioner:[^=]+=(.*)/
+    static DEFAULT_BRANCH_NAME = 'master'
 
     static DEFAULT_BUILD = '''
             plugins{
@@ -20,12 +21,16 @@ class VersionerBuildTest extends IntegrationSpec {
             apply plugin: 'java'
         '''.stripIndent()
 
-    def setupGitRepo() {
+    def setupGitRepo(String defaultBranch = DEFAULT_BRANCH_NAME) {
         execute('git init .')
         execute('git add .')
         execute('git config user.email "test@test.com"')
         execute('git config user.name "tester"')
         execute('git commit -m"commit" ')
+
+        if (defaultBranch != DEFAULT_BRANCH_NAME) {
+            execute("git branch -m $DEFAULT_BRANCH_NAME $defaultBranch")
+        }
     }
 
     def 'test build without options'() {
@@ -139,7 +144,6 @@ class VersionerBuildTest extends IntegrationSpec {
         execute('git checkout -b hotfix/some-hotfix')
         execute('git commit -m"adding file in hotfix" --allow-empty')
         execute('git commit -m"adding file in hotfix" --allow-empty')
-
 
         when:
         def result = runSuccessfully("build")

@@ -11,6 +11,8 @@ import groovy.transform.Memoized
 class Versioner {
     static final DEFAULT_SOLID_BRANCH_REGEX = "master|main|.*release.*|.*hotfix.*"
     static final DEFAULT_HOTFIX_COMMON_BRANCH = "master"
+    // Search through common branches in order to find first matching.
+    static final DEFAULT_HOTFIX_COMMON_BRANCHES = ["main", DEFAULT_HOTFIX_COMMON_BRANCH]
 
     //Git commands also used in unit tests
     static final CMD_BRANCH = "rev-parse --abbrev-ref HEAD"
@@ -71,7 +73,8 @@ class Versioner {
      */
     def int getHotfixNumber() {
         def branchName = getBranchNameRaw()
-        def commitList = executeGit("log --oneline $branchName...$options.commonHotfixBranch")
+        def commonHotfixBranch = getCommonHotfixBranch()
+        def commitList = executeGit("log --oneline $branchName...$commonHotfixBranch")
 
         return commitList ? commitList.split('\n').length : 0
     }
@@ -85,8 +88,9 @@ class Versioner {
             // In the hotfix case, the point value is not the number of commits in the current branch
             //but the number of commits from when we split off.
             def branchName = getBranchNameRaw();
+            def commonHotfixBranch = getCommonHotfixBranch();
 
-            def commitHash = executeGit("merge-base $branchName $options.commonHotfixBranch")
+            def commitHash = executeGit("merge-base $branchName $commonHotfixBranch")
             def commitList = executeGit("log --oneline $commitHash")
             def point = commitList ? commitList.split('\n').length : 0
             point += "." + getHotfixNumber()
@@ -147,6 +151,30 @@ class Versioner {
     def int getPointNumber() {
         def pointSplit = getVersionPoint().split('\\.')
         return Integer.parseInt(pointSplit[0])
+    }
+
+    /**
+     * @return Find a suitable hotfix branch
+     */
+    @Memoized
+    def String getCommonHotfixBranch() {
+        def commonHotfixBranches = options.commonHotfixBranches
+
+        // Ensure we are backwards compatible with the previous option.
+        def commonHotfixBranch= options.commonHotfixBranch
+        def found = commonHotfixBranches.find { it == commonHotfixBranch }
+        if (found == null)
+            // Insert the previous option at the start of the list so it is
+            // matched first.
+            commonHotfixBranches = [commonHotfixBranch, *commonHotfixBranches]
+
+        // Find the first matching hotfix branch.
+        def ref = commonHotfixBranches.find {
+            executeGit("rev-parse --quiet --verify $it")
+        }
+        if (ref != null)
+            return ref
+        return commonHotfixBranches[0]
     }
 
     /**
