@@ -125,9 +125,11 @@ class VersionerTest {
 
         def gitMock = new MockFor(GitExecutor.class)
 
-        gitMock.demand.execute(6) { params ->
+        gitMock.demand.execute(8) { params ->
             if (params == Versioner.CMD_BRANCH) "hotfix/foobar"
             else if (params.startsWith("log --oneline hotfix/foobar")) "one\ntwo\nthree\nfour"
+            else if (params == "rev-parse --quiet --verify main") null
+            else if (params == "rev-parse --quiet --verify master") "commit-hash-return"
             else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
             else if (params == Versioner.CMD_POINT) "4"
             else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
@@ -160,9 +162,11 @@ class VersionerTest {
 
         def gitMock = new MockFor(GitExecutor.class)
 
-        gitMock.demand.execute(6) { params ->
+        gitMock.demand.execute(8) { params ->
             if (params == Versioner.CMD_BRANCH) "release/hotfix"
             else if (params.startsWith("log --oneline release/hotfix")) "one\ntwo\nthree\nfour"
+            else if (params == "rev-parse --quiet --verify main") null
+            else if (params == "rev-parse --quiet --verify master") "commit-hash-return"
             else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
             else if (params == Versioner.CMD_POINT) "4"
             else if (params == Versioner.getCMD_COMMIT_HASH()) "adbcdf"
@@ -510,13 +514,15 @@ class VersionerTest {
 
         def gitMock = new MockFor(GitExecutor.class)
 
-        gitMock.demand.execute(1..6) { params ->
+        gitMock.demand.execute(1..8) { params ->
             if (params == Versioner.CMD_BRANCH) "master"
             else if (params == Versioner.CMD_MAJOR_MINOR) "v2.3"
             else if (params == Versioner.CMD_POINT) "4"
             else if (params == Versioner.CMD_COMMIT_HASH) "adbcdf"
             else if (params == Versioner.CMD_POINT_SOLID_BRANCH) ""
             else if (params.startsWith("log --oneline ")) "one\ntwo\nthree\nfour"
+            else if (params == "rev-parse --quiet --verify main") null
+            else if (params == "rev-parse --quiet --verify master") "commit-hash-return"
             else throw new Exception("Unaccounted for method call")
         }
 
