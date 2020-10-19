@@ -135,7 +135,6 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.branch == 'master'
     }
 
-
     def 'test hotfix build'() {
         buildFile << DEFAULT_BUILD
 
@@ -156,6 +155,28 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.minor == '0'
         assert version.point == '2'
         assert version.hotfix == '2'
+        assert version.branch == 'hotfix-some-hotfix'
+    }
+
+    def 'test hotfix build on main'() {
+        buildFile << DEFAULT_BUILD
+
+        setupGitRepo('main')
+        execute('git commit -m"adding commit in main" --allow-empty')
+        execute('git checkout -b hotfix/some-hotfix')
+        execute('git commit -m"adding file in hotfix" --allow-empty')
+
+        when:
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
+        def version = new Version(buildVersion)
+
+        then:
+        version.valid
+        assert version.major == '1'
+        assert version.minor == '0'
+        assert version.point == '2'
+        assert version.hotfix == '1'
         assert version.branch == 'hotfix-some-hotfix'
     }
 
