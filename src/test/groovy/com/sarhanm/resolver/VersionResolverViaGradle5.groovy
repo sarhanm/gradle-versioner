@@ -4,10 +4,10 @@ package com.sarhanm.resolver
  *
  * @author Mohammad Sarhan
  */
-class VersionResolverViaGradle4 extends  VersionResolverViaGradleVersionsTest {
+class VersionResolverViaGradle5 extends  VersionResolverViaGradleVersionsTest {
 
     @Override
     def String getAlternateGradleVersion() {
-        return '4.4.1'
+        return '5.6.4'
     }
 }

@@ -284,6 +284,10 @@ class VersionResolverViaGradleVersionsTest extends IntegrationSpec {
             nebulaVersion = '+'
         else if(gradleVersion.startsWith('4'))
             nebulaVersion = '5.1.0'
+        else if(gradleVersion.startsWith('5'))
+            nebulaVersion = '16.0.0'
+        else if(gradleVersion.startsWith('6'))
+            nebulaVersion = '17.3.2'
         else
             nebulaVersion = '4.8.1'
 
