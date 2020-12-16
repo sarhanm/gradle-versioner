@@ -14,7 +14,6 @@ import org.gradle.model.Mutate
  */
 class VersionRangeResolver {
 
-
     VersionResolverInternal resolver
 
     VersionRangeResolver(VersionResolverInternal resolver) {
@@ -22,7 +21,9 @@ class VersionRangeResolver {
     }
 
     @Mutate
-    void evaluateVersionRange(ComponentSelection selection, ComponentMetadata metadata) {
+    void evaluateVersionRange(ComponentSelection selection) {
+
+        ComponentMetadata metadata = selection.getMetadata()
 
         def verString = null
         def group = metadata.id.group

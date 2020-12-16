@@ -1,6 +1,7 @@
 package com.sarhanm.resolver
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
@@ -11,6 +12,8 @@ import org.yaml.snakeyaml.Yaml
  * @author mohammad sarhan
  */
 class VersionManifestOutputTask extends DefaultTask {
+
+    @Input
     def VersionResolver versionResolver
 
     @OutputFile

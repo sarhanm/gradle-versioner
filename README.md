@@ -30,7 +30,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "com.sarhanm:gradle-versioner:3.0.15"
+    classpath "com.sarhanm:gradle-versioner:4.0.0"
   }
 }
 
@@ -45,10 +45,10 @@ Using the plugins mechanism
 ```
 plugins {
   //Versioner
-  id "com.sarhanm.versioner" version "2.2.11"
+  id "com.sarhanm.versioner" version "4.0.0"
   
   //Version Resolver (optional)
-  id "com.sarhanm.version-resolver" version "2.2.11"
+  id "com.sarhanm.version-resolver" version "4.0.0"
 }
 ```
 
