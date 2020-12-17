@@ -5,6 +5,7 @@ package com.sarhanm.resolver
 
 import com.sarhanm.resolver.VersionManifestOption
 import com.sarhanm.resolver.VersionRangeResolver
+import com.sarhanm.resolver.VersionRangeResolverForGradleVersionsLessThan6
 import com.sarhanm.resolver.VersionResolutionPlugin
 import com.sarhanm.resolver.VersionResolverInternal
 import org.gradle.api.Project
@@ -24,6 +25,8 @@ class VersionResolutionConfigurer {
                                       ConfigurationContainer configurations,
                                       RepositoryHandler repositoryHandler) {
 
+        final int gradleMajorVersion = getMajorVersionFromGradleVersionString(project.getGradle().getGradleVersion())
+
         def versionManifestConfiguration = configurations.maybeCreate("versionManifest")
 
         def resolverInternal = new VersionResolverInternal(project, manifestOptions, configurations, repositoryHandler)
@@ -35,13 +38,21 @@ class VersionResolutionConfigurer {
             // since that configuration is used (and resolved) in VersionResolver.
             if (c.name != VersionResolutionPlugin.VERSION_MANIFEST_CONFIGURATION) {
                 c.resolutionStrategy.eachDependency(resolverInternal)
-                c.resolutionStrategy.componentSelection.all(new VersionRangeResolver(resolverInternal))
+                if (gradleMajorVersion >= 6) {
+                    c.resolutionStrategy.componentSelection.all(new VersionRangeResolver(resolverInternal))
+                } else {
+                    c.resolutionStrategy.componentSelection.all(new VersionRangeResolverForGradleVersionsLessThan6(resolverInternal))
+                }
             }
         }
 
         //A public facing version resolver that can be used programatically and
         // used with other plugins
         return new VersionResolver(versionManifestConfiguration, resolverInternal)
+    }
+
+    static int getMajorVersionFromGradleVersionString(final String gradleVersionString) {
+        return Integer.parseInt(gradleVersionString.substring(0,gradleVersionString.indexOf('.')));
     }
 
 }
