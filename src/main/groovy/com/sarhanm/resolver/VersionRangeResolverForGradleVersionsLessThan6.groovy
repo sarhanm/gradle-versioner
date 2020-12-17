@@ -7,22 +7,18 @@ import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.model.Mutate
 
-/**
- *
- * @author Mohammad Sarhan (mohammad@)
- */
-class VersionRangeResolver {
+class VersionRangeResolverForGradleVersionsLessThan6 {
+
 
     VersionResolverInternal resolver
 
-    VersionRangeResolver(VersionResolverInternal resolver) {
+    VersionRangeResolverForGradleVersionsLessThan6(VersionResolverInternal resolver) {
         this.resolver = resolver
     }
 
     @Mutate
-    void evaluateVersionRange(ComponentSelection selection) {
+    void evaluateVersionRange(ComponentSelection selection, ComponentMetadata metadata) {
 
-        ComponentMetadata metadata = selection.getMetadata()
         VersionRangeResolverHelper.evaluateVersionRange(selection, metadata, resolver)
     }
 }
