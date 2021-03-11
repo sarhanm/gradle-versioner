@@ -18,7 +18,7 @@ class Versioner {
     static final CMD_BRANCH = "rev-parse --abbrev-ref HEAD"
     static final CMD_MAJOR_MINOR = "describe --match v* --abbrev=0 --tags"
     static final CMD_POINT = "rev-list HEAD --count"
-    static final CMD_POINT_SOLID_BRANCH = "describe --long --match v*"
+    static final CMD_POINT_SOLID_BRANCH = "describe --long --match v* --tags"
     static final CMD_COMMIT_HASH = "rev-parse --short=7 HEAD"
 
     private cache = [:]
