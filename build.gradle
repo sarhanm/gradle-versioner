@@ -97,7 +97,12 @@ bintray {
     }
 }
 
-
+gradlePlugin {
+    plugins.create("gradle-versioner") {
+        id = "com.sarhanm.versioner"
+        implementationClass = "com.sarhanm.versioner.VersionerPlugin"
+    }
+}
 
 pluginBundle {
   website = 'https://github.com/sarhanm/gradle-versioner/wiki'
