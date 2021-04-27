@@ -172,5 +172,5 @@ signing {
     def signingKey = signingKeyBase64 ? new String(signingKeyBase64.decodeBase64()) : null
     def signingPassword = findProperty("signingPassword")
     useInMemoryPgpKeys(signingKey, signingPassword)
-    sign configurations.archives
+    sign publishing.publications.pluginMaven
 }
