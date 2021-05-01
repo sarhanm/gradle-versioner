@@ -1,17 +1,16 @@
 plugins {
-    id 'com.jfrog.bintray' version "1.8.4"
     id 'com.sarhanm.versioner' version '3.0.21'
-    id 'com.gradle.plugin-publish' version '0.12.0'
+    id 'com.gradle.plugin-publish' version '0.14.0'
     id 'jacoco'
-    id 'com.github.kt3k.coveralls' version '2.6.3'
+    id 'com.github.kt3k.coveralls' version '2.12.0'
+    id 'io.github.gradle-nexus.publish-plugin'  version '1.1.0'
+    id 'signing'
+
 }
 
 group = 'com.sarhanm'
-
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'groovy'
-apply plugin: 'eclipse'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 versioner{
@@ -20,7 +19,7 @@ versioner{
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -28,12 +27,12 @@ dependencies {
     compile localGroovy()
 
 
-    compile 'org.yaml:snakeyaml:1.21'
-    compile 'io.github.http-builder-ng:http-builder-ng-apache:1.0.3'
+    compile 'org.yaml:snakeyaml:1.28'
+    compile 'io.github.http-builder-ng:http-builder-ng-apache:1.0.4'
 
     testCompile gradleTestKit()
-    testCompile ('org.spockframework:spock-core:1.1-groovy-2.4'){
-        exclude group: 'org.codehaus.groovy'
+    testCompile ('org.spockframework:spock-core:1.2-groovy-2.5'){
+        exclude module : 'groovy-all'
     }
 
     testCompile 'com.netflix.nebula:nebula-test:7.2.3'
@@ -66,33 +65,37 @@ artifacts {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            from components.java
+        pluginMaven(MavenPublication) {
             artifact sourcesJar
             artifact groovydocJar
-        }
-    }
-}
+            pom { 
+                name = 'Gradle Versioner'
+                description = 'Auto versioning gradle builds via git metadata (tags, branch names) and # of commits'
+                url = 'https://github.com/sarhanm/gradle-versioner'
 
-bintray {
-    user = 'sarhanm'
-    key = System.env.BINTRAYTOKEN
-    publications = ['mavenJava']
-    dryRun = false
-    publish = true
-    pkg {
-        repo = 'maven'
-        name = 'gradle-versioner'
-        desc = 'A gradle plugin to set the project version based on git metadata'
-        websiteUrl = 'https://github.com/sarhanm/gradle-versioner'
-        issueTrackerUrl = 'https://github.com/sarhanm/gradle-versioner/issues'
-        vcsUrl = 'https://github.com/sarhanm/gradle-versioner.git'
-        licenses = ['MIT']
-        labels = ['gradle', 'git', 'versioning', 'auto version' ,'versioner', 'version', 'versioning']
-        publicDownloadNumbers = true
-        version {
-            name = project.version
-            attributes = ['gradle-plugin': ['com.sarhanm.versioner:com.sarhanm:gradle-versioner','com.sarhanm.version-resolver:com.sarhanm:gradle-versioner'] ]
+                scm {
+                    url = 'https://github.com/sarhanm/gradle-versioner'
+                    connection = 'scm:git:git://github.com:sarhanm/gradle-versioner.git'
+                    developerConnection = 'scm:git:ssh://github.com:sarhanm/gradle-versioner.git'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'sarhanm'
+                        name = 'Mohammad Sarhan'
+                        email = 'sarhanm@gmail.com'
+                        organizationUrl = 'https://sarhanm.com'
+                    }
+                }
+            }
         }
     }
 }
@@ -147,16 +150,34 @@ task setupPluginUpload {
 
 tasks.publishPlugins.dependsOn tasks.setupPluginUpload
 
-// If we want our unit tests to work in intellij/eclipse, then we need to change
-// where our build output goes so its the same on the command line and in intellij.
-// This is because the java-gradle-plugin generates a meta-data file used in testing,
-// and that meta-data files adds build/classes/main to the classpath.
-if(System.properties.getProperty("local-eclipse", "true") == "true") {
-    project.plugins.withType(EclipsePlugin) {
-        project.eclipse {
-            classpath {
-                defaultOutputDir = project.file("${project.buildDir}/classes/main")
-            }
+// To upload to nexus, you must supply the following environment variables
+//      ORG_GRADLE_PROJECT_sonatypePassword
+//      ORG_GRADLE_PROJECT_sonatypeUsername
+nexusPublishing {
+    repositories {
+        sonatype {  //only for users registered in Sonatype after 24 Feb 2021
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
         }
     }
+}
+
+signing {
+    required { gradle.taskGraph.hasTask("publish") }
+
+    // We store the armored value as a base64 value to get
+    // around all the escaping required by Travis-CI
+    // if we were to use the private key directly.
+    // Generated the armored value with command
+    //  gpg --export-secret-keys --armor KEY_ID > private-ci.key
+    // then base64 encoded the file and escaped the = and any + or / characters (required for travis-ci)
+    // add that value in travic-ci with the following keys:
+    //      ORG_GRADLE_PROJECT_signingKey
+    //      ORG_GRADLE_PROJECT_signingPassword
+
+    String signingKeyBase64 = findProperty("signingKey")
+    def signingKey = signingKeyBase64 ? new String(signingKeyBase64.decodeBase64()) : null
+    def signingPassword = findProperty("signingPassword")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.pluginMaven
 }

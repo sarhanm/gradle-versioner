@@ -135,6 +135,30 @@ class VersionerBuildTest extends IntegrationSpec {
         assert version.branch == 'master'
     }
 
+    def 'test tagged build with non-annotated tag'() {
+        buildFile << DEFAULT_BUILD
+
+        setupGitRepo()
+        execute('git commit -m"adding commit in 2" --allow-empty')
+        execute('git commit -m"adding commit in 3" --allow-empty')
+
+        execute('git tag v6.8')
+        execute('git commit -m"adding commit in 4" --allow-empty')
+        execute('git commit -m"adding commit in 5" --allow-empty')
+
+        when:
+        def result = runSuccessfully("build")
+        def buildVersion = getVersionFromOutput(result.output)
+        def version = new Version(buildVersion)
+
+        then:
+        version.valid
+        assert version.major == '6'
+        assert version.minor == '8'
+        assert version.point == '2' //number of commits from last tag
+        assert version.branch == 'master'
+    }
+
     def 'test hotfix build'() {
         buildFile << DEFAULT_BUILD
 
