@@ -96,27 +96,26 @@ publishing {
     }
 }
 
-gradlePlugin {
-    plugins.create("versionerPlugin"){
-        id = "com.sarhanm.versioner"
-        implementationClass = "com.sarhanm.versioner.VersionerPlugin"
-        displayName = 'Gradle Project Version Set Plugin'
-        description = 'Set the project version based on git tag metatdata and number of commits. Example: 1.0.81.master.efbb95a'
-    }
-
-    plugins.create("version-resolver-plugin"){
-        id = "com.sarhanm.version-resolver"
-        implementationClass = "com.sarhanm.resolver.VersionResolutionPlugin"
-        displayName = 'Version Resolver: Resolve Dependencies From Global Manifest'
-        description = 'Allows you to resolve versions for all dependencies from a global manifest rather than hard coding versions in each build.gradle file.'
-    }
-}
-
 pluginBundle {
   website = 'https://github.com/sarhanm/gradle-versioner/wiki'
   vcsUrl = 'https://github.com/sarhanm/gradle-versioner'
   description = 'Set the project version based on git tag metadata and number of commits.'
   tags = ['versioner', 'version', 'versioning', 'git', 'scm', 'commits', 'auto version', 'auto', 'gradle']
+
+    plugins {
+
+        versionerPlugin {
+            id = 'com.sarhanm.versioner'
+            displayName = 'Gradle Project Version Set Plugin'
+            description = 'Set the project version based on git metatdata and number of commits. Example: 1.0.81.master.efbb95a'
+        }
+
+        versionResolverPlugin {
+            id = 'com.sarhanm.version-resolver'
+            displayName = 'Version Resolver: Resolve Dependencies From Global Manifest'
+            description = 'Allows you to resolve versions for all dependencies from a global manifest rather than hard coding versions in each build.gradle file.'
+        }
+    }
 }
 
 /**
