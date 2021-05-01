@@ -289,6 +289,7 @@ class VersionerBuildTest extends IntegrationSpec {
         buildFile << DEFAULT_BUILD
 
         setupGitRepo()
+        execute('git commit -m"adding 2nd commit in master" --allow-empty')
         execute('git tag v7.13')
 
         when:
@@ -300,7 +301,7 @@ class VersionerBuildTest extends IntegrationSpec {
         version.valid
         assert version.major == '7'
         assert version.minor == '13'
-        assert version.point == '1' //number of commits from last tag
+        assert version.point == '0' //number of commits from last tag
         assert version.branch == 'master'
     }
 
