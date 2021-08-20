@@ -11,7 +11,12 @@ class VersionResolutionConfigurerTest extends Specification{
 
     def testGetMajorVersionFromGradleVersionString() {
         when:
-        def v = VersionResolutionConfigurer.getMajorVersionFromGradleVersionString("6.7.1")
+        def v = VersionResolutionConfigurer.getMajorVersionFromGradleVersionString("7.1.1")
+        then:
+        7 == v
+
+        when:
+        v = VersionResolutionConfigurer.getMajorVersionFromGradleVersionString("6.7.1")
         then:
         6 == v
 
